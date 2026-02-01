@@ -26,7 +26,28 @@ export interface Column {
   name: string;
   boardId: string;
   order: number;
+  type?: ColumnType;
   cards: Card[];
+  cells?: Cell[];
+}
+
+export type ColumnType = 'text' | 'number' | 'date' | 'file' | 'link';
+
+export interface Cell {
+  id: string;
+  columnId: string;
+  rowId: string;
+  value: string;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Row {
+  id: string;
+  boardId: string;
+  order: number;
+  createdAt: Date;
 }
 
 export interface Card {
@@ -71,7 +92,6 @@ export interface BoardTemplateConfig {
   id: BoardTemplate;
   name: string;
   description: string;
-  icon: string;
   defaultColumns: string[];
   features: string[];
 }

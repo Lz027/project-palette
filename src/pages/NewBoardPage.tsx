@@ -10,13 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-const iconMap: Record<string, React.ElementType> = {
-  Layout,
-  Zap,
-  Grid3X3,
-  Compass,
-  Calendar,
-  Lightbulb,
+const templateIcons: Record<string, React.ElementType> = {
+  canvas: Layout,
+  sprint: Zap,
+  mosaic: Grid3X3,
+  compass: Compass,
+  rhythm: Calendar,
+  spark: Lightbulb,
 };
 
 export default function NewBoardPage() {
@@ -85,7 +85,7 @@ export default function NewBoardPage() {
       {step === 'template' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {BOARD_TEMPLATES.map(template => {
-            const Icon = iconMap[template.icon] || Layout;
+            const Icon = templateIcons[template.id] || Layout;
             return (
               <button
                 key={template.id}

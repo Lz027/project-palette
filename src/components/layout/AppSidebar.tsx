@@ -6,11 +6,11 @@ import {
   Star, 
   Settings, 
   Plus,
-  ChevronRight,
   User,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import paletteLogo from '@/assets/palette-logo.jpeg';
+import shosekiLogo from '@/assets/shoseki-logo.png';
 import { useBoards } from '@/contexts/BoardContext';
 import {
   Sidebar,
@@ -80,7 +80,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <ScrollArea className="h-[calc(100vh-180px)]">
+        <ScrollArea className="h-[calc(100vh-260px)]">
           {/* Main Navigation */}
           <SidebarGroup>
             <SidebarGroupContent>
@@ -184,6 +184,31 @@ export function AppSidebar() {
           )}
         </ScrollArea>
       </SidebarContent>
+
+      {/* Shoseki AI Directory */}
+      <div className="px-2 mb-2">
+        <a
+          href="https://shoseki.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "flex items-center gap-3 px-3 py-3 rounded-lg bg-foreground transition-all hover:opacity-90",
+            collapsed && "justify-center px-2"
+          )}
+        >
+          <img 
+            src={shosekiLogo} 
+            alt="Shoseki" 
+            className="w-6 h-6 object-contain"
+          />
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-background">Shoseki</span>
+              <span className="text-xs text-background/70">AI Directory</span>
+            </div>
+          )}
+        </a>
+      </div>
 
       <SidebarFooter className="p-2 border-t border-sidebar-border">
         <SidebarMenu>
