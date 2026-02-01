@@ -35,7 +35,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold">
-            {greeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
+            {greeting()}, {user?.name?.split(' ')[0] || 'there'}
           </h1>
           <p className="text-muted-foreground mt-1">
             Here's what's happening with your projects
@@ -150,7 +150,7 @@ export default function DashboardPage() {
       {favoriteBoards.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg font-semibold">⭐ Favorites</h2>
+            <h2 className="font-display text-lg font-semibold">Favorites</h2>
             <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
               <Link to="/favorites">
                 View all <ArrowRight className="h-4 w-4 ml-1" />
