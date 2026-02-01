@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import paletteLogo from '@/assets/palette-logo.jpeg';
 
 export default function LoginPage() {
   const { login, isLoading, isAuthenticated } = useAuth();
@@ -23,9 +24,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-primary-foreground font-bold text-2xl">P</span>
-          </div>
+          <img 
+            src={paletteLogo} 
+            alt="Palette" 
+            className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg object-cover"
+          />
           <h1 className="font-display text-3xl font-bold text-gradient mb-2">
             Palette
           </h1>
