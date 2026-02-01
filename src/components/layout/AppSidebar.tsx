@@ -10,6 +10,7 @@ import {
   User,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
+import paletteLogo from '@/assets/palette-logo.jpeg';
 import { useBoards } from '@/contexts/BoardContext';
 import {
   Sidebar,
@@ -65,9 +66,11 @@ export function AppSidebar() {
     >
       <SidebarHeader className="p-4">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
+          <img 
+            src={paletteLogo} 
+            alt="Palette" 
+            className="w-8 h-8 rounded-lg object-cover"
+          />
           {!collapsed && (
             <span className="font-display font-bold text-lg text-gradient">
               Palette
