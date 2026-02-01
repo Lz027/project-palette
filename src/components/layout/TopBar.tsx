@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, Search, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,11 +13,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { FocusWheel, FocusMode } from '@/components/features/FocusWheel';
 
 export function TopBar() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const [focusMode, setFocusMode] = useState<FocusMode>('productive');
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -55,6 +57,9 @@ export function TopBar() {
         )}
 
         <div className="flex items-center gap-2">
+          {/* Focus Wheel */}
+          <FocusWheel value={focusMode} onChange={setFocusMode} compact />
+
           {/* Mobile Search Button */}
           {isMobile && (
             <Button variant="ghost" size="icon" className="text-muted-foreground">

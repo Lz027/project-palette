@@ -1,26 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import paletteLogo from '@/assets/palette-logo.jpeg';
-import { FocusWheel, FocusMode } from '@/components/features/FocusWheel';
 import { 
-  StarDoodle, 
-  CloudDoodle, 
-  SparkleDoodle, 
-  HeartDoodle, 
-  BlobDoodle, 
-  DotsDoodle,
-  SwirlDoodle,
-  WavyDoodle
+  LightbulbYarn,
+  TargetYarn,
+  CheckYarn,
+  ClockYarn,
+  PencilYarn,
+  LoopYarn,
+  StarYarn,
+  TangledYarn,
+  ListYarn,
+  WavyYarn
 } from '@/components/features/Doodles';
 
 export default function LoginPage() {
   const { login, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [focusMode, setFocusMode] = useState<FocusMode>('productive');
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -33,39 +33,39 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-primary/5 p-4 relative overflow-hidden">
-      {/* Floating doodles - scattered around the page */}
+      {/* Floating yarn doodles - scattered around the page */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Top left area */}
-        <StarDoodle className="absolute top-[8%] left-[5%] animate-pulse" />
-        <CloudDoodle className="absolute top-[15%] left-[12%] opacity-60" />
-        <SparkleDoodle className="absolute top-[5%] left-[25%]" />
+        <LightbulbYarn className="absolute top-[8%] left-[5%] animate-pulse" />
+        <LoopYarn className="absolute top-[15%] left-[15%] opacity-60" />
+        <StarYarn className="absolute top-[5%] left-[28%]" />
         
         {/* Top right area */}
-        <BlobDoodle className="absolute top-[10%] right-[8%]" />
-        <DotsDoodle className="absolute top-[20%] right-[15%]" />
-        <HeartDoodle className="absolute top-[8%] right-[25%] animate-bounce" style={{ animationDuration: '3s' }} />
+        <TargetYarn className="absolute top-[10%] right-[8%]" />
+        <TangledYarn className="absolute top-[20%] right-[12%]" />
+        <CheckYarn className="absolute top-[8%] right-[28%] animate-bounce" style={{ animationDuration: '3s' }} />
         
         {/* Middle left */}
-        <SwirlDoodle className="absolute top-[40%] left-[3%]" />
-        <StarDoodle className="absolute top-[55%] left-[8%] text-board-lavender/40" />
+        <ClockYarn className="absolute top-[40%] left-[3%]" />
+        <StarYarn className="absolute top-[55%] left-[8%] text-board-lavender/40" />
         
         {/* Middle right */}
-        <CloudDoodle className="absolute top-[45%] right-[5%] text-board-mint/40" />
-        <SparkleDoodle className="absolute top-[35%] right-[3%]" />
+        <ListYarn className="absolute top-[45%] right-[5%] text-board-mint/40" />
+        <PencilYarn className="absolute top-[35%] right-[3%]" />
         
         {/* Bottom left */}
-        <HeartDoodle className="absolute bottom-[15%] left-[10%] text-board-lavender/50" />
-        <DotsDoodle className="absolute bottom-[25%] left-[5%]" />
-        <BlobDoodle className="absolute bottom-[8%] left-[20%] text-board-mint" />
+        <CheckYarn className="absolute bottom-[15%] left-[10%] text-board-lavender/50" />
+        <TangledYarn className="absolute bottom-[25%] left-[5%]" />
+        <TargetYarn className="absolute bottom-[8%] left-[20%] text-board-mint" />
         
         {/* Bottom right */}
-        <StarDoodle className="absolute bottom-[20%] right-[12%] text-board-mint/60" />
-        <SwirlDoodle className="absolute bottom-[10%] right-[8%] text-board-coral/40" />
-        <CloudDoodle className="absolute bottom-[5%] right-[25%]" />
+        <StarYarn className="absolute bottom-[20%] right-[12%] text-board-mint/60" />
+        <LoopYarn className="absolute bottom-[10%] right-[8%] text-board-coral/40" />
+        <LightbulbYarn className="absolute bottom-[5%] right-[25%]" />
         
-        {/* Wavy lines */}
-        <WavyDoodle className="absolute top-[30%] left-[15%] rotate-12" />
-        <WavyDoodle className="absolute bottom-[35%] right-[10%] -rotate-6" />
+        {/* Wavy yarn lines */}
+        <WavyYarn className="absolute top-[30%] left-[15%] rotate-12" />
+        <WavyYarn className="absolute bottom-[35%] right-[10%] -rotate-6" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
@@ -78,21 +78,13 @@ export default function LoginPage() {
               alt="Palette" 
               className="w-20 h-20 rounded-full mx-auto shadow-xl object-cover ring-4 ring-background relative z-10"
             />
-            {/* Decorative sparkles around logo */}
-            <SparkleDoodle className="absolute -top-2 -right-2 w-4 h-4" />
-            <StarDoodle className="absolute -bottom-1 -left-3 w-5 h-5" />
+            {/* Decorative yarn around logo */}
+            <StarYarn className="absolute -top-2 -right-2 w-4 h-4" />
+            <CheckYarn className="absolute -bottom-1 -left-3 w-5 h-5" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-gradient mt-4 mb-2">
+          <h1 className="font-display text-3xl font-bold text-gradient mt-4">
             Palette
           </h1>
-          <p className="text-muted-foreground">
-            Paint your productivity canvas
-          </p>
-        </div>
-
-        {/* Focus Wheel */}
-        <div className="flex justify-center mb-8">
-          <FocusWheel value={focusMode} onChange={setFocusMode} />
         </div>
 
         <Card className="glass-card backdrop-blur-sm bg-card/80 border-primary/10 shadow-2xl">
@@ -146,9 +138,9 @@ export default function LoginPage() {
 
         {/* Bottom decorative element */}
         <div className="flex justify-center mt-6 gap-2 opacity-50">
-          <HeartDoodle className="w-4 h-4" />
-          <StarDoodle className="w-4 h-4" />
-          <SparkleDoodle className="w-4 h-4" />
+          <CheckYarn className="w-4 h-4" />
+          <StarYarn className="w-4 h-4" />
+          <LightbulbYarn className="w-4 h-4" />
         </div>
       </div>
     </div>
