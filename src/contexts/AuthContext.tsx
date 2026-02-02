@@ -1,58 +1,161 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  createdAt: Date;
+}
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (provider: 'google' | 'github') => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  uploadAvatar: (file: File) => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock user for demo - will be replaced with real auth later
-const DEMO_USER: User = {
-  id: 'demo-user-1',
-  name: 'Demo User',
-  email: 'demo@palette.app',
-  avatar: undefined,
-  createdAt: new Date(),
-};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for stored session
-    const storedUser = localStorage.getItem('palette-user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const transformUser = (supabaseUser: SupabaseUser): User => {
+    return {
+      id: supabaseUser.id,
+      name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+      email: supabaseUser.email || '',
+      avatar: supabaseUser.user_metadata?.avatar_url,
+      createdAt: new Date(supabaseUser.created_at),
+    };
+  };
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    return data;
+  };
+
+  const createProfile = async (supabaseUser: SupabaseUser) => {
+    const { error } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: supabaseUser.id,
+        display_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name,
+        email: supabaseUser.email,
+        avatar_url: supabaseUser.user_metadata?.avatar_url,
+      });
+    
+    if (error && error.code !== '23505') { // Ignore duplicate key errors
+      console.error('Error creating profile:', error);
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          const transformedUser = transformUser(session.user);
+          
+          // Try to get profile with avatar
+          const profile = await fetchProfile(session.user.id);
+          if (profile?.avatar_url) {
+            transformedUser.avatar = profile.avatar_url;
+          }
+          
+          setUser(transformedUser);
+          
+          // Create profile if signing in for first time
+          if (event === 'SIGNED_IN') {
+            await createProfile(session.user);
+          }
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const transformedUser = transformUser(session.user);
+        
+        // Try to get profile with avatar
+        const profile = await fetchProfile(session.user.id);
+        if (profile?.avatar_url) {
+          transformedUser.avatar = profile.avatar_url;
+        }
+        
+        setUser(transformedUser);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (provider: 'google' | 'github') => {
     setIsLoading(true);
-    // Simulate login delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
     
-    const newUser = {
-      ...DEMO_USER,
-      id: `user-${Date.now()}`,
-      name: provider === 'google' ? 'Google User' : 'GitHub User',
-      email: provider === 'google' ? 'user@gmail.com' : 'user@github.com',
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('palette-user', JSON.stringify(newUser));
-    setIsLoading(false);
+    if (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('palette-user');
+  };
+
+  const uploadAvatar = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    // Update profile with new avatar URL
+    await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('user_id', user.id);
+
+    // Update local user state
+    setUser(prev => prev ? { ...prev, avatar: publicUrl } : null);
+
+    return publicUrl;
   };
 
   return (
@@ -62,7 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading, 
         isAuthenticated: !!user, 
         login, 
-        logout 
+        logout,
+        uploadAvatar,
       }}
     >
       {children}

@@ -50,24 +50,30 @@ export type Database = {
       columns: {
         Row: {
           board_id: string
+          column_type: string | null
           created_at: string | null
           id: string
           name: string
           position: number
+          settings: Json | null
         }
         Insert: {
           board_id: string
+          column_type?: string | null
           created_at?: string | null
           id?: string
           name: string
           position?: number
+          settings?: Json | null
         }
         Update: {
           board_id?: string
+          column_type?: string | null
           created_at?: string | null
           id?: string
           name?: string
           position?: number
+          settings?: Json | null
         }
         Relationships: [
           {
@@ -94,6 +100,36 @@ export type Database = {
           column_id?: string | null
           created_at?: string
           id?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

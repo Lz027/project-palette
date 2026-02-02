@@ -3,15 +3,18 @@ import { Link } from 'react-router-dom';
 import { Plus, ArrowRight, Sparkles, Target, Clock } from 'lucide-react';
 import { useBoards } from '@/contexts/BoardContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFocus } from '@/contexts/FocusContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BoardCard } from '@/components/boards/BoardCard';
 import { QuickCapture } from '@/components/features/QuickCapture';
+import { FocusWheel } from '@/components/features/FocusWheel';
 import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { boards } = useBoards();
   const { user } = useAuth();
+  const { colors } = useFocus();
 
   const favoriteBoards = boards.filter(b => b.isFavorite);
   const recentBoards = boards.slice(-4).reverse();
@@ -41,12 +44,23 @@ export default function DashboardPage() {
             Here's what's happening with your projects
           </p>
         </div>
-        <Button asChild className="gradient-primary text-primary-foreground w-full md:w-auto">
-          <Link to="/boards/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Board
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          {/* Focus Wheel Section */}
+          <div className="hidden md:flex items-center gap-3 p-2 rounded-lg bg-muted/50 border border-border">
+            <FocusWheel />
+            <div className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground">{colors.name} Mode</p>
+              <p>Click wheel to switch</p>
+            </div>
+          </div>
+          
+          <Button asChild className="gradient-primary text-primary-foreground w-full md:w-auto">
+            <Link to="/boards/new">
+              <Plus className="h-4 w-4 mr-2" />
+              {colors.createLabel}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Quick Capture */}
@@ -139,7 +153,7 @@ export default function DashboardPage() {
                 Create your first board to get started
               </p>
               <Button asChild className="gradient-primary text-primary-foreground">
-                <Link to="/boards/new">Create Board</Link>
+                <Link to="/boards/new">{colors.createLabel}</Link>
               </Button>
             </CardContent>
           </Card>

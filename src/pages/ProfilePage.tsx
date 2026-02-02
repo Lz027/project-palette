@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBoards } from '@/contexts/BoardContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, Camera, FolderKanban, Calendar } from 'lucide-react';
+import { LogOut, Camera, FolderKanban, Calendar, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, uploadAvatar } = useAuth();
   const { boards } = useBoards();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
 
   if (!user) return null;
 
@@ -23,6 +25,41 @@ export default function ProfilePage() {
   const totalCards = boards.reduce((acc, b) => 
     acc + b.columns.reduce((colAcc, c) => colAcc + c.cards.length, 0), 0
   );
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const url = await uploadAvatar(file);
+      if (url) {
+        toast.success('Profile picture updated!');
+      } else {
+        toast.error('Failed to upload image');
+      }
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -44,9 +81,24 @@ export default function ProfilePage() {
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
-              <button className="absolute inset-0 flex items-center justify-center bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                <Camera className="h-6 w-6 text-foreground" />
+              <button 
+                onClick={handleAvatarClick}
+                disabled={isUploading}
+                className="absolute inset-0 flex items-center justify-center bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-6 w-6 text-foreground animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6 text-foreground" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
 
             {/* User Info */}

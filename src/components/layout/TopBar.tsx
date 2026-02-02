@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Menu, Search, Bell, Moon, Sun, Monitor } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Search, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { FocusWheel, FocusMode } from '@/components/features/FocusWheel';
+import { FocusWheel } from '@/components/features/FocusWheel';
 
 export function TopBar() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [focusMode, setFocusMode] = useState<FocusMode>('productive');
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -58,7 +58,7 @@ export function TopBar() {
 
         <div className="flex items-center gap-2">
           {/* Focus Wheel */}
-          <FocusWheel value={focusMode} onChange={setFocusMode} compact />
+          <FocusWheel compact />
 
           {/* Mobile Search Button */}
           {isMobile && (
@@ -102,12 +102,14 @@ export function TopBar() {
 
           {/* User Avatar - Desktop only */}
           {!isMobile && user && (
-            <Avatar className="h-8 w-8 border-2 border-primary/20">
-              <AvatarImage src={user.avatar} />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                {getInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
+            <Link to="/profile">
+              <Avatar className="h-8 w-8 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors">
+                <AvatarImage src={user.avatar} />
+                <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                  {getInitials(user.name)}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
           )}
         </div>
       </div>
