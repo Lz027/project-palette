@@ -16,9 +16,9 @@ interface FocusWheelProps {
 }
 
 const focusModes: { id: FocusMode; label: string; icon: React.ReactNode; color: string; bgColor: string; description: string }[] = [
-  { id: 'tech', label: 'Tech', icon: <Code className="w-3 h-3" />, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-400', description: 'Software Development' },
-  { id: 'productive', label: 'Focus', icon: <Target className="w-3 h-3" />, color: 'text-rose-600 dark:text-rose-400', bgColor: 'bg-rose-400', description: 'Productivity & General' },
-  { id: 'design', label: 'Design', icon: <Palette className="w-3 h-3" />, color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-400', description: 'Design & Image Editing' },
+  { id: 'tech', label: 'Tech', icon: <Code className="w-3 h-3" />, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-500', description: 'Dev Tools & Code' },
+  { id: 'productive', label: 'Focus', icon: <Target className="w-3 h-3" />, color: 'text-rose-600 dark:text-rose-400', bgColor: 'bg-rose-500', description: 'Productivity' },
+  { id: 'design', label: 'Design', icon: <Palette className="w-3 h-3" />, color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-500', description: 'Design Tools' },
 ];
 
 export function FocusWheel({ className, compact = false }: FocusWheelProps) {
@@ -34,16 +34,16 @@ export function FocusWheel({ className, compact = false }: FocusWheelProps) {
     setFocusMode(focusModes[nextIndex].id);
   };
 
-  const wheelSize = compact ? 'w-10 h-10' : 'w-24 h-24';
-  const armLength = compact ? 12 : 32;
-  const circleSize = compact ? 'w-4 h-4' : 'w-8 h-8';
-  const circlePx = compact ? 8 : 16;
+  const wheelSize = compact ? 'w-9 h-9' : 'w-20 h-20';
+  const armLength = compact ? 10 : 28;
+  const circleSize = compact ? 'w-3.5 h-3.5' : 'w-7 h-7';
+  const circlePx = compact ? 7 : 14;
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn("relative flex items-center gap-2", className)}>
+          <div className={cn("relative flex items-center", className)}>
             {/* Center hub */}
             <button
               onClick={handleRotate}
@@ -80,7 +80,7 @@ export function FocusWheel({ className, compact = false }: FocusWheelProps) {
                           "absolute rounded-full flex items-center justify-center shadow-sm transition-all duration-300",
                           circleSize,
                           mode.bgColor,
-                          focusMode === mode.id ? "ring-2 ring-foreground/30 ring-offset-1 ring-offset-background" : ""
+                          focusMode === mode.id ? "ring-2 ring-foreground/30 ring-offset-1 ring-offset-background scale-110" : ""
                         )}
                         style={{
                           left: `calc(50% + ${endX}px - ${circlePx}px)`,
@@ -88,7 +88,7 @@ export function FocusWheel({ className, compact = false }: FocusWheelProps) {
                         }}
                       >
                         <span 
-                          className="text-white"
+                          className="text-primary-foreground"
                           style={{ transform: `rotate(${-rotation}deg)` }}
                         >
                           {mode.icon}
@@ -103,7 +103,7 @@ export function FocusWheel({ className, compact = false }: FocusWheelProps) {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className={cn(
                   "rounded-full bg-foreground/40 group-hover:bg-foreground/60 transition-colors",
-                  compact ? "w-1.5 h-1.5" : "w-4 h-4"
+                  compact ? "w-1.5 h-1.5" : "w-3 h-3"
                 )} />
               </div>
             </button>
