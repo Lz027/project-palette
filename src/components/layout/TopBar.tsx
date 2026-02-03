@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Bell, Moon, Sun, Monitor } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Monitor, Menu } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FocusWheel } from '@/components/features/FocusWheel';
+import paletteLogo from '@/assets/palette-logo.jpeg';
 
-export function TopBar() {
+interface TopBarProps {
+  onMenuClick?: () => void;
+}
+
+export function TopBar({ onMenuClick }: TopBarProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -33,12 +38,24 @@ export function TopBar() {
           
           {isMobile && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">P</span>
-              </div>
-              <span className="font-display font-bold text-lg text-gradient">
-                Palette
-              </span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onMenuClick}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <img 
+                  src={paletteLogo} 
+                  alt="Palette" 
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+                <span className="font-display font-bold text-lg text-gradient">
+                  Palette
+                </span>
+              </Link>
             </div>
           )}
         </div>
@@ -56,27 +73,20 @@ export function TopBar() {
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          {/* Focus Wheel */}
-          <FocusWheel compact />
-
-          {/* Mobile Search Button */}
-          {isMobile && (
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
-              <Search className="h-5 w-5" />
-            </Button>
-          )}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Focus Wheel - Only on desktop, moved to sidebar on mobile */}
+          {!isMobile && <FocusWheel compact />}
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="text-muted-foreground relative">
+          <Button variant="ghost" size="icon" className="text-muted-foreground relative h-9 w-9">
             <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
           </Button>
 
           {/* Theme Toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
+              <Button variant="ghost" size="icon" className="text-muted-foreground h-9 w-9">
                 {resolvedTheme === 'dark' ? (
                   <Moon className="h-5 w-5" />
                 ) : (
@@ -100,8 +110,8 @@ export function TopBar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* User Avatar - Desktop only */}
-          {!isMobile && user && (
+          {/* User Avatar */}
+          {user && (
             <Link to="/profile">
               <Avatar className="h-8 w-8 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors">
                 <AvatarImage src={user.avatar} />

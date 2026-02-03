@@ -69,7 +69,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo - Circular */}
+        {/* Logo - Circular without underline */}
         <div className="text-center mb-8">
           <div className="relative inline-block">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl scale-125" />
