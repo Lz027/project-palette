@@ -56,12 +56,14 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
 
   const colors = focusModeColors[focusMode];
 
-  // Apply theme colors to CSS variables
+  // Apply theme colors to CSS variables - dynamically update the primary/secondary/accent
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--focus-primary', colors.primary);
-    root.style.setProperty('--focus-secondary', colors.secondary);
-    root.style.setProperty('--focus-accent', colors.accent);
+    root.style.setProperty('--primary', colors.primary);
+    root.style.setProperty('--secondary', colors.secondary);
+    root.style.setProperty('--accent', colors.accent);
+    root.style.setProperty('--ring', colors.primary);
+    root.style.setProperty('--sidebar-primary', colors.primary);
   }, [colors]);
 
   const getColumnTypes = () => {

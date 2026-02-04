@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Plus, Trash2, Type, Hash, Calendar, Paperclip, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Star, Plus, Trash2, Type, Hash, Calendar, Paperclip, Link as LinkIcon, Check, X, Wrench, Palette, CheckSquare } from 'lucide-react';
 import { useBoards } from '@/contexts/BoardContext';
+import { useFocus, devTools, designTools, defaultStatuses } from '@/contexts/FocusContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,25 +15,33 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { ColumnType } from '@/types';
 
-const columnTypeConfig: Record<ColumnType, { icon: React.ElementType; label: string }> = {
+type ExtendedColumnType = ColumnType | 'dev-tools' | 'design-tools' | 'status';
+
+const columnTypeConfig: Record<ExtendedColumnType, { icon: React.ElementType; label: string }> = {
   text: { icon: Type, label: 'Text' },
   number: { icon: Hash, label: 'Number' },
   date: { icon: Calendar, label: 'Date' },
   file: { icon: Paperclip, label: 'File' },
   link: { icon: LinkIcon, label: 'Link' },
+  'dev-tools': { icon: Wrench, label: 'Dev Tools' },
+  'design-tools': { icon: Palette, label: 'Design Tools' },
+  'status': { icon: CheckSquare, label: 'Status' },
 };
 
 export default function BoardViewPage() {
   const { boardId } = useParams<{ boardId: string }>();
-  const { boards, toggleFavorite, addColumn, deleteColumn } = useBoards();
+  const { boards, toggleFavorite, addColumn, deleteColumn, updateColumnName } = useBoards();
+  const { focusMode, getColumnTypes } = useFocus();
   
   const board = boards.find(b => b.id === boardId);
   const [newColumnName, setNewColumnName] = useState('');
   const [rows, setRows] = useState<{ id: string; cells: Record<string, string> }[]>([
     { id: '1', cells: {} },
   ]);
-  const [columnTypes, setColumnTypes] = useState<Record<string, ColumnType>>({});
+  const [columnTypes, setColumnTypes] = useState<Record<string, ExtendedColumnType>>({});
   const [editingCell, setEditingCell] = useState<{ rowId: string; colId: string } | null>(null);
+  const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
+  const [editingColumnName, setEditingColumnName] = useState('');
 
   if (!board) {
     return <Navigate to="/boards" replace />;
@@ -61,15 +70,35 @@ export default function BoardViewPage() {
     setRows(rows.filter(row => row.id !== rowId));
   };
 
-  const handleColumnTypeChange = (colId: string, type: ColumnType) => {
+  const handleColumnTypeChange = (colId: string, type: ExtendedColumnType) => {
     setColumnTypes({ ...columnTypes, [colId]: type });
   };
 
-  const getColumnType = (colId: string): ColumnType => {
+  const getColumnType = (colId: string): ExtendedColumnType => {
     return columnTypes[colId] || 'text';
   };
 
-  const renderCellInput = (rowId: string, colId: string, type: ColumnType) => {
+  const startEditingColumn = (colId: string, currentName: string) => {
+    setEditingColumnId(colId);
+    setEditingColumnName(currentName);
+  };
+
+  const saveColumnName = (colId: string) => {
+    if (editingColumnName.trim() && board) {
+      updateColumnName(board.id, colId, editingColumnName.trim());
+    }
+    setEditingColumnId(null);
+    setEditingColumnName('');
+  };
+
+  const cancelEditingColumn = () => {
+    setEditingColumnId(null);
+    setEditingColumnName('');
+  };
+
+  const availableColumnTypes = getColumnTypes();
+
+  const renderCellInput = (rowId: string, colId: string, type: ExtendedColumnType) => {
     const value = rows.find(r => r.id === rowId)?.cells[colId] || '';
     const isEditing = editingCell?.rowId === rowId && editingCell?.colId === colId;
 
@@ -103,6 +132,84 @@ export default function BoardViewPage() {
             </Button>
             {value && <span className="text-xs text-muted-foreground truncate">{value}</span>}
           </div>
+        );
+      case 'dev-tools':
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-9 w-full justify-start px-3 text-sm font-normal">
+                {value ? devTools.find(t => t.id === value)?.name || 'Select tool' : 'Select tool'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48">
+              {devTools.map(tool => (
+                <DropdownMenuItem 
+                  key={tool.id} 
+                  onClick={() => handleCellChange(rowId, colId, tool.id)}
+                  className={cn(value === tool.id && "bg-accent")}
+                >
+                  <span className="mr-2">{tool.icon}</span>
+                  {tool.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      case 'design-tools':
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-9 w-full justify-start px-3 text-sm font-normal">
+                {value ? designTools.find(t => t.id === value)?.name || 'Select tool' : 'Select tool'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48">
+              {designTools.map(tool => (
+                <DropdownMenuItem 
+                  key={tool.id} 
+                  onClick={() => handleCellChange(rowId, colId, tool.id)}
+                  className={cn(value === tool.id && "bg-accent")}
+                >
+                  <span className="mr-2">{tool.icon}</span>
+                  {tool.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      case 'status':
+        const selectedStatus = defaultStatuses.find(s => s.id === value);
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-9 w-full justify-start px-3 text-sm font-normal">
+                {selectedStatus ? (
+                  <span className="flex items-center gap-2">
+                    <span 
+                      className="w-2.5 h-2.5 rounded-full" 
+                      style={{ backgroundColor: `hsl(${selectedStatus.color})` }}
+                    />
+                    {selectedStatus.name}
+                  </span>
+                ) : 'Select status'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48">
+              {defaultStatuses.map(status => (
+                <DropdownMenuItem 
+                  key={status.id} 
+                  onClick={() => handleCellChange(rowId, colId, status.id)}
+                  className={cn(value === status.id && "bg-accent")}
+                >
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full mr-2" 
+                    style={{ backgroundColor: `hsl(${status.color})` }}
+                  />
+                  {status.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       default:
         return <Input {...inputProps} type="text" placeholder="Enter text..." />;
@@ -157,9 +264,10 @@ export default function BoardViewPage() {
             </div>
             
             {/* Existing columns */}
-            {board.columns.map((column, index) => {
+            {board.columns.map((column) => {
               const type = getColumnType(column.id);
-              const TypeIcon = columnTypeConfig[type].icon;
+              const TypeIcon = columnTypeConfig[type]?.icon || Type;
+              const isEditing = editingColumnId === column.id;
               
               return (
                 <div 
@@ -167,7 +275,34 @@ export default function BoardViewPage() {
                   className="w-48 shrink-0 border-r border-border"
                 >
                   <div className="flex items-center justify-between px-3 py-2 group">
-                    <span className="font-medium text-sm truncate">{column.name}</span>
+                    {isEditing ? (
+                      <div className="flex items-center gap-1 flex-1">
+                        <Input
+                          value={editingColumnName}
+                          onChange={(e) => setEditingColumnName(e.target.value)}
+                          className="h-6 text-sm px-1"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveColumnName(column.id);
+                            if (e.key === 'Escape') cancelEditingColumn();
+                          }}
+                        />
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => saveColumnName(column.id)}>
+                          <Check className="h-3 w-3 text-success" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={cancelEditingColumn}>
+                          <X className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span 
+                        className="font-medium text-sm truncate cursor-pointer hover:text-primary"
+                        onClick={() => startEditingColumn(column.id, column.name)}
+                        title="Click to edit"
+                      >
+                        {column.name}
+                      </span>
+                    )}
                     <div className="flex items-center gap-1">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -176,16 +311,20 @@ export default function BoardViewPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {Object.entries(columnTypeConfig).map(([typeKey, config]) => (
-                            <DropdownMenuItem 
-                              key={typeKey}
-                              onClick={() => handleColumnTypeChange(column.id, typeKey as ColumnType)}
-                              className={cn(type === typeKey && "bg-accent")}
-                            >
-                              <config.icon className="h-4 w-4 mr-2" />
-                              {config.label}
-                            </DropdownMenuItem>
-                          ))}
+                          {availableColumnTypes.map(({ value: typeKey, label }) => {
+                            const config = columnTypeConfig[typeKey as ExtendedColumnType];
+                            if (!config) return null;
+                            return (
+                              <DropdownMenuItem 
+                                key={typeKey}
+                                onClick={() => handleColumnTypeChange(column.id, typeKey as ExtendedColumnType)}
+                                className={cn(type === typeKey && "bg-accent")}
+                              >
+                                <config.icon className="h-4 w-4 mr-2" />
+                                {label}
+                              </DropdownMenuItem>
+                            );
+                          })}
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Button

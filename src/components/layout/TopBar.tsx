@@ -74,8 +74,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         )}
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Focus Wheel - Only on desktop, moved to sidebar on mobile */}
-          {!isMobile && <FocusWheel compact />}
+          {/* Focus Wheel - single location in the UI */}
+          <FocusWheel compact />
 
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="text-muted-foreground relative h-9 w-9">
