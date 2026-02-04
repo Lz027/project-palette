@@ -109,15 +109,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (provider: 'google' | 'github') => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
-    
-    if (error) {
-      console.error('Login error:', error);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      
+      if (error) {
+        console.error('Login error:', error);
+      }
+    } catch (err) {
+      console.error('Login exception:', err);
+    } finally {
       setIsLoading(false);
     }
   };
