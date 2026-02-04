@@ -12,6 +12,7 @@ interface BoardContextType {
   toggleFavorite: (id: string) => void;
   addColumn: (boardId: string, name: string) => void;
   updateColumn: (boardId: string, columnId: string, updates: Partial<Column>) => void;
+  updateColumnName: (boardId: string, columnId: string, name: string) => void;
   deleteColumn: (boardId: string, columnId: string) => void;
   addCard: (boardId: string, columnId: string, title: string) => void;
   updateCard: (boardId: string, columnId: string, cardId: string, updates: Partial<Card>) => void;
@@ -125,6 +126,10 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
         updatedAt: new Date(),
       };
     }));
+  };
+
+  const updateColumnName = (boardId: string, columnId: string, name: string) => {
+    updateColumn(boardId, columnId, { name });
   };
 
   const deleteColumn = (boardId: string, columnId: string) => {
@@ -246,6 +251,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
       toggleFavorite,
       addColumn,
       updateColumn,
+      updateColumnName,
       deleteColumn,
       addCard,
       updateCard,

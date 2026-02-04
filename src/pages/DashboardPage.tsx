@@ -7,7 +7,6 @@ import { useFocus } from '@/contexts/FocusContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BoardCard } from '@/components/boards/BoardCard';
-import { FocusWheel } from '@/components/features/FocusWheel';
 import { FocusToolsPanel } from '@/components/features/FocusToolsPanel';
 import { CodeSnippets } from '@/components/features/CodeSnippets';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,25 +47,12 @@ export default function DashboardPage() {
               Here's what's happening with your projects
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Focus Wheel Section - Desktop */}
-            {!isMobile && (
-              <div className="hidden md:flex items-center gap-3 p-2 rounded-lg bg-muted/50 border border-border">
-                <FocusWheel />
-                <div className="text-xs text-muted-foreground">
-                  <p className="font-medium text-foreground">{colors.name} Mode</p>
-                  <p>Click wheel to switch</p>
-                </div>
-              </div>
-            )}
-            
-            <Button asChild className="gradient-primary text-primary-foreground">
-              <Link to="/boards/new">
-                <Plus className="h-4 w-4 mr-2" />
-                {colors.createLabel}
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="gradient-primary text-primary-foreground">
+            <Link to="/boards/new">
+              <Plus className="h-4 w-4 mr-2" />
+              {colors.createLabel}
+            </Link>
+          </Button>
         </div>
       </div>
 
