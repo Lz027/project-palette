@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,6 @@ import {
 
 export default function LoginPage() {
   const { login, isLoading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -28,7 +27,7 @@ export default function LoginPage() {
 
   const handleLogin = async (provider: 'google' | 'github') => {
     await login(provider);
-    navigate('/dashboard');
+    // OAuth will redirect automatically, no need to navigate
   };
 
   return (
