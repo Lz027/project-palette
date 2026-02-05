@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Code, Plus, Copy, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { snippetTitleSchema, snippetCodeSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
 
 interface Snippet {
   id: string;
@@ -34,13 +35,25 @@ export function CodeSnippets({ className }: CodeSnippetsProps) {
   };
 
   const addSnippet = () => {
-    if (!newSnippet.title || !newSnippet.code) {
-      toast.error('Please fill in all fields');
+    // Validate title
+    const titleValidation = validateInput(snippetTitleSchema, newSnippet.title);
+    if (!titleValidation.success) {
+      toast.error(titleValidation.error);
       return;
     }
+    
+    // Validate code
+    const codeValidation = validateInput(snippetCodeSchema, newSnippet.code);
+    if (!codeValidation.success) {
+      toast.error(codeValidation.error);
+      return;
+    }
+    
     const snippet: Snippet = {
       id: Date.now().toString(),
-      ...newSnippet,
+      title: titleValidation.data,
+      code: codeValidation.data,
+      language: newSnippet.language,
     };
     saveSnippets([...snippets, snippet]);
     setNewSnippet({ title: '', code: '', language: 'javascript' });
@@ -84,15 +97,20 @@ export function CodeSnippets({ className }: CodeSnippetsProps) {
             <Input
               placeholder="Snippet title"
               value={newSnippet.title}
-              onChange={(e) => setNewSnippet({ ...newSnippet, title: e.target.value })}
+              onChange={(e) => setNewSnippet({ ...newSnippet, title: e.target.value.slice(0, INPUT_LIMITS.SNIPPET_TITLE) })}
+              maxLength={INPUT_LIMITS.SNIPPET_TITLE}
               className="h-8 text-sm"
             />
             <Textarea
               placeholder="Paste your code here..."
               value={newSnippet.code}
-              onChange={(e) => setNewSnippet({ ...newSnippet, code: e.target.value })}
+              onChange={(e) => setNewSnippet({ ...newSnippet, code: e.target.value.slice(0, INPUT_LIMITS.SNIPPET_CODE) })}
+              maxLength={INPUT_LIMITS.SNIPPET_CODE}
               className="min-h-[80px] font-mono text-xs"
             />
+            <p className="text-xs text-muted-foreground">
+              {newSnippet.code.length}/{INPUT_LIMITS.SNIPPET_CODE} characters
+            </p>
             <div className="flex gap-2">
               <Button size="sm" onClick={addSnippet} className="h-7">Save</Button>
               <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)} className="h-7">Cancel</Button>

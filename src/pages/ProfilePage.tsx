@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { LogOut, Camera, FolderKanban, Calendar, Loader2, Save, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { displayNameSchema, bioSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
 
 export default function ProfilePage() {
   const { user, logout, uploadAvatar } = useAuth();
@@ -19,8 +20,13 @@ export default function ProfilePage() {
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.name || '');
-  const [bio, setBio] = useState('');
+  const [displayName, setDisplayName] = useState(() => {
+    return (user?.name || '').slice(0, INPUT_LIMITS.DISPLAY_NAME);
+  });
+  const [bio, setBio] = useState(() => {
+    const saved = localStorage.getItem('palette-profile-bio');
+    return (saved || '').slice(0, INPUT_LIMITS.BIO);
+  });
   const [bannerUrl, setBannerUrl] = useState<string | null>(() => {
     return localStorage.getItem('palette-profile-banner');
   });
@@ -105,7 +111,21 @@ export default function ProfilePage() {
   };
 
   const handleSaveProfile = () => {
-    localStorage.setItem('palette-profile-bio', bio);
+    // Validate display name
+    const nameValidation = validateInput(displayNameSchema, displayName);
+    if (!nameValidation.success) {
+      toast.error(nameValidation.error);
+      return;
+    }
+    
+    // Validate bio
+    const bioValidation = validateInput(bioSchema, bio);
+    if (!bioValidation.success) {
+      toast.error(bioValidation.error);
+      return;
+    }
+    
+    localStorage.setItem('palette-profile-bio', bioValidation.data);
     toast.success('Profile saved!');
   };
 
@@ -210,9 +230,13 @@ export default function ProfilePage() {
               <Input 
                 id="displayName" 
                 value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
+                onChange={(e) => setDisplayName(e.target.value.slice(0, INPUT_LIMITS.DISPLAY_NAME))}
+                maxLength={INPUT_LIMITS.DISPLAY_NAME}
                 className="mt-1" 
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {displayName.length}/{INPUT_LIMITS.DISPLAY_NAME}
+              </p>
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
@@ -234,10 +258,14 @@ export default function ProfilePage() {
             <Textarea 
               id="bio" 
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={(e) => setBio(e.target.value.slice(0, INPUT_LIMITS.BIO))}
+              maxLength={INPUT_LIMITS.BIO}
               placeholder="Tell us about yourself..."
               className="mt-1 min-h-[100px]"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              {bio.length}/{INPUT_LIMITS.BIO}
+            </p>
           </div>
 
           <Button onClick={handleSaveProfile} className="gradient-primary text-primary-foreground">
