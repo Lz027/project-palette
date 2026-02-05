@@ -81,9 +81,6 @@ export default function LoginPage() {
             <StarYarn className="absolute -top-2 -right-2 w-4 h-4" />
             <CheckYarn className="absolute -bottom-1 -left-3 w-5 h-5" />
           </div>
-          <h1 className="font-display text-4xl font-bold text-gradient mt-5">
-            Palette
-          </h1>
           <p className="text-muted-foreground text-sm mt-2">
             Your creative productivity space
           </p>
