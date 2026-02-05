@@ -38,14 +38,14 @@ export function CodeSnippets({ className }: CodeSnippetsProps) {
     // Validate title
     const titleValidation = validateInput(snippetTitleSchema, newSnippet.title);
     if (!titleValidation.success) {
-      toast.error(titleValidation.error);
+      toast.error('error' in titleValidation ? titleValidation.error : 'Invalid title');
       return;
     }
     
     // Validate code
     const codeValidation = validateInput(snippetCodeSchema, newSnippet.code);
     if (!codeValidation.success) {
-      toast.error(codeValidation.error);
+      toast.error('error' in codeValidation ? codeValidation.error : 'Invalid code');
       return;
     }
     

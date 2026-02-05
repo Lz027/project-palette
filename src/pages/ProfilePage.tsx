@@ -114,14 +114,14 @@ export default function ProfilePage() {
     // Validate display name
     const nameValidation = validateInput(displayNameSchema, displayName);
     if (!nameValidation.success) {
-      toast.error(nameValidation.error);
+      toast.error('error' in nameValidation ? nameValidation.error : 'Invalid display name');
       return;
     }
     
     // Validate bio
     const bioValidation = validateInput(bioSchema, bio);
     if (!bioValidation.success) {
-      toast.error(bioValidation.error);
+      toast.error('error' in bioValidation ? bioValidation.error : 'Invalid bio');
       return;
     }
     

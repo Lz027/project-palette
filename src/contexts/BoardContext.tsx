@@ -58,7 +58,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     // Validate board name
     const validation = validateInput(boardNameSchema, name);
     if (!validation.success) {
-      toast.error(validation.error);
+      toast.error('error' in validation ? validation.error : 'Invalid board name');
       return null as unknown as Board;
     }
     const validatedName = validation.data;
@@ -117,7 +117,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     // Validate column name
     const validation = validateInput(columnNameSchema, name);
     if (!validation.success) {
-      toast.error(validation.error);
+      toast.error('error' in validation ? validation.error : 'Invalid column name');
       return;
     }
     const validatedName = validation.data;
@@ -153,7 +153,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     // Validate column name
     const validation = validateInput(columnNameSchema, name);
     if (!validation.success) {
-      toast.error(validation.error);
+      toast.error('error' in validation ? validation.error : 'Invalid column name');
       return;
     }
     updateColumn(boardId, columnId, { name: validation.data });
@@ -174,7 +174,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     // Validate card title
     const validation = validateInput(cardTitleSchema, title);
     if (!validation.success) {
-      toast.error(validation.error);
+      toast.error('error' in validation ? validation.error : 'Invalid card title');
       return;
     }
     const validatedTitle = validation.data;
