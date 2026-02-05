@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Board, BoardColor, BoardTemplate, Column, Card } from '@/types';
 import { BOARD_TEMPLATES } from '@/lib/board-templates';
+import { boardNameSchema, columnNameSchema, cardTitleSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
+import { toast } from 'sonner';
 
 interface BoardContextType {
   boards: Board[];
@@ -53,13 +55,24 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   }, [boards]);
 
   const createBoard = (name: string, template: BoardTemplate, color: BoardColor, description?: string): Board => {
+    // Validate board name
+    const validation = validateInput(boardNameSchema, name);
+    if (!validation.success) {
+      toast.error('error' in validation ? validation.error : 'Invalid board name');
+      return null as unknown as Board;
+    }
+    const validatedName = validation.data;
+    
+    // Truncate description if provided
+    const validatedDescription = description?.slice(0, 1000);
+    
     const templateConfig = BOARD_TEMPLATES.find(t => t.id === template);
     const defaultColumns = templateConfig?.defaultColumns || ['To Do', 'In Progress', 'Done'];
     
     const newBoard: Board = {
       id: generateId(),
-      name,
-      description,
+      name: validatedName,
+      description: validatedDescription,
       color,
       template,
       columns: defaultColumns.map((colName, index) => ({
@@ -101,13 +114,21 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addColumn = (boardId: string, name: string) => {
+    // Validate column name
+    const validation = validateInput(columnNameSchema, name);
+    if (!validation.success) {
+      toast.error('error' in validation ? validation.error : 'Invalid column name');
+      return;
+    }
+    const validatedName = validation.data;
+    
     setBoards(prev => prev.map(b => {
       if (b.id !== boardId) return b;
       return {
         ...b,
         columns: [...b.columns, {
           id: generateId(),
-          name,
+          name: validatedName,
           boardId,
           order: b.columns.length,
           cards: [],
@@ -129,7 +150,13 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateColumnName = (boardId: string, columnId: string, name: string) => {
-    updateColumn(boardId, columnId, { name });
+    // Validate column name
+    const validation = validateInput(columnNameSchema, name);
+    if (!validation.success) {
+      toast.error('error' in validation ? validation.error : 'Invalid column name');
+      return;
+    }
+    updateColumn(boardId, columnId, { name: validation.data });
   };
 
   const deleteColumn = (boardId: string, columnId: string) => {
@@ -144,6 +171,14 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addCard = (boardId: string, columnId: string, title: string) => {
+    // Validate card title
+    const validation = validateInput(cardTitleSchema, title);
+    if (!validation.success) {
+      toast.error('error' in validation ? validation.error : 'Invalid card title');
+      return;
+    }
+    const validatedTitle = validation.data;
+    
     setBoards(prev => prev.map(b => {
       if (b.id !== boardId) return b;
       return {
@@ -154,7 +189,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
             ...c,
             cards: [...c.cards, {
               id: generateId(),
-              title,
+              title: validatedTitle,
               columnId,
               order: c.cards.length,
               labels: [],

@@ -85,24 +85,6 @@ export type Database = {
           },
         ]
       }
-      palette: {
-        Row: {
-          column_id: string | null
-          created_at: string
-          id: number
-        }
-        Insert: {
-          column_id?: string | null
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          column_id?: string | null
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
