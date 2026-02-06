@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppSidebar } from '@/components/layout/AppSidebar';
-import { MobileSidebar } from '@/components/layout/MobileSidebar';
+import { MobileNavBar } from '@/components/layout/MobileNavBar';
 import { TopBar } from '@/components/layout/TopBar';
-import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 function LayoutContent() {
   const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Don't show sidebar on auth pages
   const isAuthPage = location.pathname === '/login';
@@ -26,19 +26,17 @@ function LayoutContent() {
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
-      <TopBar onMenuClick={() => setMobileMenuOpen(true)} />
+      <TopBar />
       <div className="flex flex-1 w-full overflow-hidden">
         {!isMobile && <AppSidebar />}
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className={cn(
+          "flex-1 overflow-auto p-4 md:p-6",
+          isMobile && "pb-20" // Space for bottom nav
+        )}>
           <Outlet />
         </main>
       </div>
-      {isMobile && (
-        <MobileSidebar 
-          open={mobileMenuOpen} 
-          onOpenChange={setMobileMenuOpen} 
-        />
-      )}
+      {isMobile && <MobileNavBar />}
     </div>
   );
 }
