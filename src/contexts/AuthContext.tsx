@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         avatar_url: supabaseUser.user_metadata?.avatar_url,
       });
     
-    if (error && error.code !== '23505') { // Ignore duplicate key errors
+    if (error && error.code !== '23505') {
       console.error('Error creating profile:', error);
     }
   };
@@ -63,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
-    // Listener for ONGOING auth changes (does NOT control isLoading)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
@@ -72,14 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const transformedUser = transformUser(session.user);
           setUser(transformedUser);
           
-          // Fire and forget - don't await, don't set loading
           fetchProfile(session.user.id).then(profile => {
             if (isMounted && profile?.avatar_url) {
               setUser(prev => prev ? { ...prev, avatar: profile.avatar_url } : null);
             }
           }).catch(console.error);
           
-          // Create profile if signing in for first time (don't await)
           if (event === 'SIGNED_IN') {
             createProfile(session.user).catch(console.error);
           }
@@ -89,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // INITIAL load (controls isLoading)
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -98,7 +94,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           const transformedUser = transformUser(session.user);
           
-          // Fetch profile BEFORE setting loading false
           try {
             const profile = await fetchProfile(session.user.id);
             if (profile?.avatar_url) {
@@ -131,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
+          redirectTo: 'https://palette-ecru.vercel.app/auth/callback',
         },
       });
       
@@ -169,13 +164,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('avatars')
       .getPublicUrl(filePath);
 
-    // Update profile with new avatar URL
     await supabase
       .from('profiles')
       .update({ avatar_url: publicUrl })
       .eq('user_id', user.id);
 
-    // Update local user state
     setUser(prev => prev ? { ...prev, avatar: publicUrl } : null);
 
     return publicUrl;
