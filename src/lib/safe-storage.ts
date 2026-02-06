@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 export function safeParseLocalStorage<T>(
   key: string,
-  schema: z.ZodSchema<T>,
+  schema: z.ZodType<T>,
   defaultValue: T
 ): T {
   try {
