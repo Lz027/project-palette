@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export type FocusMode = 'tech' | 'productive' | 'design';
 
@@ -8,6 +8,7 @@ interface FocusColors {
   accent: string;
   name: string;
   createLabel: string;
+  createRoute: string;
 }
 
 const focusModeColors: Record<FocusMode, FocusColors> = {
@@ -17,6 +18,7 @@ const focusModeColors: Record<FocusMode, FocusColors> = {
     accent: '340 60% 70%',
     name: 'Productive',
     createLabel: 'Create Workspace',
+    createRoute: '/boards/new',
   },
   design: {
     primary: '45 85% 60%', // Yellow
@@ -24,6 +26,7 @@ const focusModeColors: Record<FocusMode, FocusColors> = {
     accent: '55 75% 65%',
     name: 'Design',
     createLabel: 'Create Design',
+    createRoute: '/boards/new',
   },
   tech: {
     primary: '220 70% 60%', // Blue
@@ -31,6 +34,7 @@ const focusModeColors: Record<FocusMode, FocusColors> = {
     accent: '240 60% 65%',
     name: 'Tech',
     createLabel: 'Create Project',
+    createRoute: '/boards/new',
   },
 };
 
@@ -39,6 +43,8 @@ interface FocusContextType {
   setFocusMode: (mode: FocusMode) => void;
   colors: FocusColors;
   getColumnTypes: () => { value: string; label: string; icon?: string }[];
+  pendingModeChange: FocusMode | null;
+  confirmModeChange: () => void;
 }
 
 const FocusContext = createContext<FocusContextType | undefined>(undefined);
@@ -48,11 +54,21 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('palette-focus-mode');
     return (saved as FocusMode) || 'productive';
   });
+  const [pendingModeChange, setPendingModeChange] = useState<FocusMode | null>(null);
 
-  const setFocusMode = (mode: FocusMode) => {
-    setFocusModeState(mode);
-    localStorage.setItem('palette-focus-mode', mode);
-  };
+  const setFocusMode = useCallback((mode: FocusMode) => {
+    if (mode !== focusMode) {
+      setPendingModeChange(mode);
+    }
+  }, [focusMode]);
+
+  const confirmModeChange = useCallback(() => {
+    if (pendingModeChange) {
+      setFocusModeState(pendingModeChange);
+      localStorage.setItem('palette-focus-mode', pendingModeChange);
+      setPendingModeChange(null);
+    }
+  }, [pendingModeChange]);
 
   const colors = focusModeColors[focusMode];
 
@@ -92,7 +108,7 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <FocusContext.Provider value={{ focusMode, setFocusMode, colors, getColumnTypes }}>
+    <FocusContext.Provider value={{ focusMode, setFocusMode, colors, getColumnTypes, pendingModeChange, confirmModeChange }}>
       {children}
     </FocusContext.Provider>
   );

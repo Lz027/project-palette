@@ -9,11 +9,15 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
+  Code,
+  Palette,
+  Briefcase,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import paletteLogo from '@/assets/palette-logo.jpeg';
 import shosekiLogo from '@/assets/shoseki-logo.png';
 import { useBoards } from '@/contexts/BoardContext';
+import { useFocus } from '@/contexts/FocusContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sidebar,
@@ -41,7 +45,6 @@ const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Boards', url: '/boards', icon: FolderKanban },
   { title: 'Favorites', url: '/favorites', icon: Star },
-  { title: 'New', url: '/boards/new', icon: Plus },
 ];
 
 export function AppSidebar() {
@@ -49,9 +52,24 @@ export function AppSidebar() {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { boards } = useBoards();
+  const { colors, focusMode } = useFocus();
 
   const favoriteBoards = boards.filter(b => b.isFavorite).slice(0, 5);
   const recentBoards = boards.slice(-5).reverse();
+
+  // Get the create action based on focus mode
+  const getCreateAction = () => {
+    switch (focusMode) {
+      case 'tech':
+        return { icon: Code, label: 'New Project', url: '/boards/new' };
+      case 'design':
+        return { icon: Palette, label: 'New Design', url: '/boards/new' };
+      default:
+        return { icon: Briefcase, label: 'New Board', url: '/boards/new' };
+    }
+  };
+
+  const createAction = getCreateAction();
 
   const getBoardColorClass = (color: string) => {
     const colors: Record<string, string> = {
@@ -137,7 +155,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className={cn("px-2", !open && "px-1")}>
-        <ScrollArea className="h-[calc(100vh-200px)]">
+        <ScrollArea className="h-[calc(100vh-220px)]">
           {/* Main Navigation */}
           <SidebarGroup>
             <SidebarGroupContent>
@@ -149,6 +167,49 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Create Action - Focus Aware */}
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    {!open ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <NavLink 
+                            to={createAction.url}
+                            className={cn(
+                              "flex items-center justify-center p-2.5 rounded-lg transition-colors touch-manipulation",
+                              "bg-primary/10 hover:bg-primary/20 text-primary",
+                              "active:scale-95"
+                            )}
+                          >
+                            <createAction.icon className="h-5 w-5 shrink-0" />
+                          </NavLink>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" sideOffset={10}>
+                          {createAction.label}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <NavLink 
+                        to={createAction.url}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors touch-manipulation",
+                          "bg-primary/10 hover:bg-primary/20 text-primary font-medium",
+                          "active:scale-95"
+                        )}
+                      >
+                        <createAction.icon className="h-5 w-5 shrink-0" />
+                        <span className="text-sm">{createAction.label}</span>
+                      </NavLink>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -216,13 +277,33 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Shoseki AI Directory */}
-      {open && (
-        <div className="px-2 mb-2">
+      <div className={cn("px-2 mb-2", !open && "px-1")}>
+        {!open ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href="https://shoseki.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center p-2.5 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-colors"
+              >
+                <img 
+                  src={shosekiLogo} 
+                  alt="Shoseki" 
+                  className="w-5 h-5 object-contain"
+                />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={10}>
+              Shoseki AI Directory
+            </TooltipContent>
+          </Tooltip>
+        ) : (
           <a
             href="https://shoseki.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-3 rounded-lg bg-black transition-all hover:opacity-90"
+            className="flex items-center gap-3 px-3 py-3 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all"
           >
             <img 
               src={shosekiLogo} 
@@ -230,12 +311,12 @@ export function AppSidebar() {
               className="w-6 h-6 object-contain"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-white">Shoseki</span>
-              <span className="text-xs text-white/70">AI Directory</span>
+              <span className="text-sm font-medium">Shoseki</span>
+              <span className="text-xs text-muted-foreground">AI Directory</span>
             </div>
           </a>
-        </div>
-      )}
+        )}
+      </div>
 
       <SidebarFooter className={cn("p-2 border-t border-sidebar-border", !open && "p-1")}>
         <SidebarMenu>
