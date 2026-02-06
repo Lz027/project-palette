@@ -106,23 +106,6 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Create New Board Button */}
-          <div className="px-2 py-3">
-            <Button 
-              asChild 
-              className={cn(
-                "w-full gradient-primary text-primary-foreground",
-                collapsed && "px-0 justify-center"
-              )}
-              size={collapsed ? "icon" : "default"}
-            >
-              <Link to="/boards/new">
-                <Plus className="h-4 w-4" />
-                {!collapsed && <span className="ml-2">New Board</span>}
-              </Link>
-            </Button>
-          </div>
-
           {/* Favorite Boards */}
           {!collapsed && favoriteBoards.length > 0 && (
             <SidebarGroup>
