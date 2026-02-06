@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBoards } from '@/contexts/BoardContext';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { LogOut, Camera, FolderKanban, Calendar, Loader2, Save, ImagePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { displayNameSchema, bioSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ProfilePage() {
   const { user, logout, uploadAvatar } = useAuth();
@@ -20,16 +20,50 @@ export default function ProfilePage() {
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
-  const [displayName, setDisplayName] = useState(() => {
-    return (user?.name || '').slice(0, INPUT_LIMITS.DISPLAY_NAME);
-  });
-  const [bio, setBio] = useState(() => {
-    const saved = localStorage.getItem('palette-profile-bio');
-    return (saved || '').slice(0, INPUT_LIMITS.BIO);
-  });
-  const [bannerUrl, setBannerUrl] = useState<string | null>(() => {
-    return localStorage.getItem('palette-profile-banner');
-  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+
+  // Load profile data from Supabase
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('display_name, bio, avatar_url')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (profile) {
+          setDisplayName((profile.display_name || user.name || '').slice(0, INPUT_LIMITS.DISPLAY_NAME));
+          setBio((profile.bio || '').slice(0, INPUT_LIMITS.BIO));
+        } else {
+          setDisplayName((user.name || '').slice(0, INPUT_LIMITS.DISPLAY_NAME));
+        }
+
+        // Load banner from storage
+        const { data: bannerFiles } = await supabase.storage
+          .from('banners')
+          .list(user.id, { limit: 1, sortBy: { column: 'created_at', order: 'desc' } });
+
+        if (bannerFiles && bannerFiles.length > 0) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('banners')
+            .getPublicUrl(`${user.id}/${bannerFiles[0].name}`);
+          setBannerUrl(publicUrl);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   if (!user) return null;
 
@@ -94,23 +128,30 @@ export default function ProfilePage() {
 
     setIsBannerUploading(true);
     try {
-      // For banner, we'll store it locally for now
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
-        setBannerUrl(url);
-        localStorage.setItem('palette-profile-banner', url);
-        toast.success('Banner updated!');
-        setIsBannerUploading(false);
-      };
-      reader.readAsDataURL(file);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('banners')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('banners')
+        .getPublicUrl(filePath);
+
+      setBannerUrl(publicUrl);
+      toast.success('Banner updated!');
     } catch (error) {
+      console.error('Banner upload error:', error);
       toast.error('Failed to upload banner');
+    } finally {
       setIsBannerUploading(false);
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     // Validate display name
     const nameValidation = validateInput(displayNameSchema, displayName);
     if (!nameValidation.success) {
@@ -125,8 +166,25 @@ export default function ProfilePage() {
       return;
     }
     
-    localStorage.setItem('palette-profile-bio', bioValidation.data);
-    toast.success('Profile saved!');
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: nameValidation.data,
+          bio: bioValidation.data,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Profile saved!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -268,8 +326,12 @@ export default function ProfilePage() {
             </p>
           </div>
 
-          <Button onClick={handleSaveProfile} className="gradient-primary text-primary-foreground">
-            <Save className="h-4 w-4 mr-2" />
+          <Button onClick={handleSaveProfile} disabled={isSaving} className="gradient-primary text-primary-foreground">
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
             Save Changes
           </Button>
         </CardContent>
