@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Moon, Sun, Monitor } from 'lucide-react';
+import { Bell, Moon, Sun, Monitor, Menu } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFocus } from '@/contexts/FocusContext';
@@ -37,6 +37,10 @@ export function MobileTopBar() {
     }
   }, [pendingModeChange, playFocusSound]);
 
+  const toggleSidebar = () => {
+    window.dispatchEvent(new CustomEvent('toggle-sidebar'));
+  };
+
   return (
     <>
       <FocusChangeOverlay 
@@ -46,8 +50,18 @@ export function MobileTopBar() {
       
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50 safe-area-pt">
         <div className="flex items-center justify-between h-14 px-3">
-          {/* Left: Notifications & Theme */}
+          {/* Left: Hamburger + Notifications + Theme */}
           <div className="flex items-center gap-1">
+            {/* HAMBURGER MENU BUTTON */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground h-8 w-8"
+              onClick={toggleSidebar}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
             <Button variant="ghost" size="icon" className="text-muted-foreground relative h-8 w-8">
               <Bell className="h-4 w-4" />
               <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full" />
@@ -80,7 +94,7 @@ export function MobileTopBar() {
             </DropdownMenu>
           </div>
 
-          {/* Right: Focus Wheel + Profile (grouped together) */}
+          {/* Right: Focus Wheel + Profile */}
           <div className="flex items-center gap-2">
             <SpinningFocusWheel size="compact" />
             
