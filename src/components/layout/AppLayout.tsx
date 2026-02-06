@@ -9,7 +9,37 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
-function LayoutContent() {
+function MobileLayout() {
+  return (
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      <MobileTopBar />
+      <div className="flex flex-1 w-full overflow-hidden">
+        <MobileSidebar />
+        <main className="flex-1 overflow-auto p-3 pb-20">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function DesktopLayout() {
+  return (
+    <SidebarProvider defaultOpen>
+      <div className="min-h-screen flex flex-col w-full bg-background">
+        <TopBar />
+        <div className="flex flex-1 w-full overflow-hidden">
+          <AppSidebar />
+          <main className="flex-1 overflow-auto p-3 md:p-6">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+
+export function AppLayout() {
   const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -24,43 +54,14 @@ function LayoutContent() {
     return <Outlet />;
   }
 
-  if (isMobile) {
-    return (
-      <div className="min-h-screen flex flex-col w-full bg-background">
-        <MobileTopBar />
-        <div className="flex flex-1 w-full overflow-hidden">
-          <MobileSidebar />
-          <main className="flex-1 overflow-auto p-3 pb-4">
-            <Outlet />
-          </main>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background">
-      <TopBar />
-      <div className="flex flex-1 w-full overflow-hidden">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto p-3 md:p-6">
-          <Outlet />
-        </main>
+    <>
+      <div className={cn("md:hidden", isMobile ? "block" : "hidden")}>
+        <MobileLayout />
       </div>
-    </div>
-  );
-}
-
-export function AppLayout() {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return <LayoutContent />;
-  }
-
-  return (
-    <SidebarProvider defaultOpen>
-      <LayoutContent />
-    </SidebarProvider>
+      <div className={cn("hidden md:block", !isMobile ? "block" : "hidden")}>
+        <DesktopLayout />
+      </div>
+    </>
   );
 }
