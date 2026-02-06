@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FocusMode, useFocus } from '@/contexts/FocusContext';
-import { cn } from '@/lib/utils';
+import { FocusMode } from '@/contexts/FocusContext';
 
 interface FocusChangeOverlayProps {
   targetMode: FocusMode | null;
@@ -13,32 +12,20 @@ const modeColors: Record<FocusMode, string> = {
   tech: 'hsl(220, 70%, 60%)',
 };
 
-const modeLabels: Record<FocusMode, string> = {
-  productive: 'Productive Mode',
-  design: 'Design Mode',
-  tech: 'Tech Mode',
-};
 
 export function FocusChangeOverlay({ targetMode, onComplete }: FocusChangeOverlayProps) {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showLabel, setShowLabel] = useState(false);
 
   useEffect(() => {
     if (targetMode) {
       setIsAnimating(true);
-      setShowLabel(true);
-
-      // Hide label after animation
-      const labelTimer = setTimeout(() => setShowLabel(false), 600);
       
-      // Complete animation
       const completeTimer = setTimeout(() => {
         setIsAnimating(false);
         onComplete();
-      }, 800);
+      }, 700);
 
       return () => {
-        clearTimeout(labelTimer);
         clearTimeout(completeTimer);
       };
     }
@@ -50,44 +37,62 @@ export function FocusChangeOverlay({ targetMode, onComplete }: FocusChangeOverla
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
-      {/* Multiple ripple rings for echo effect */}
-      {[0, 1, 2].map((i) => (
+      {/* Color burst particles */}
+      {Array.from({ length: 12 }).map((_, i) => (
         <div
-          key={i}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          key={`particle-${i}`}
+          className="absolute top-1/2 left-1/2 rounded-full"
           style={{
-            width: '200vmax',
-            height: '200vmax',
-            background: `radial-gradient(circle, transparent 0%, transparent 40%, ${color}20 50%, ${color}40 60%, transparent 70%)`,
-            animation: `focusRipple 0.8s ease-out forwards`,
-            animationDelay: `${i * 0.1}s`,
+            width: `${30 + Math.random() * 40}px`,
+            height: `${30 + Math.random() * 40}px`,
+            background: `radial-gradient(circle, ${color}cc, ${color}00)`,
+            animation: `burstParticle 0.7s ease-out forwards`,
+            animationDelay: `${i * 0.03}s`,
+            ['--angle' as string]: `${(i * 30) + (Math.random() * 15)}deg`,
+            ['--distance' as string]: `${150 + Math.random() * 250}px`,
             opacity: 0,
           }}
         />
       ))}
 
-      {/* Mode label */}
+      {/* Central flash */}
       <div
-        className={cn(
-          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-          "text-2xl md:text-4xl font-bold text-center transition-all duration-300",
-          showLabel ? "opacity-100 scale-100" : "opacity-0 scale-110"
-        )}
-        style={{ color }}
-      >
-        {modeLabels[targetMode]}
-      </div>
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at center, ${color}50 0%, ${color}20 30%, transparent 70%)`,
+          animation: 'colorFlash 0.5s ease-out forwards',
+        }}
+      />
+
+      {/* Edge glow wash */}
+      <div
+        className="absolute inset-0"
+        style={{
+          boxShadow: `inset 0 0 120px 60px ${color}30`,
+          animation: 'edgeGlow 0.6s ease-out forwards',
+        }}
+      />
 
       <style>{`
-        @keyframes focusRipple {
+        @keyframes burstParticle {
           0% {
-            transform: translate(-50%, -50%) scale(0);
+            transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(0.3);
             opacity: 1;
           }
           100% {
-            transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance)) scale(0);
             opacity: 0;
           }
+        }
+        @keyframes colorFlash {
+          0% { opacity: 0; transform: scale(0.5); }
+          30% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(1.5); }
+        }
+        @keyframes edgeGlow {
+          0% { opacity: 0; }
+          40% { opacity: 1; }
+          100% { opacity: 0; }
         }
       `}</style>
     </div>
