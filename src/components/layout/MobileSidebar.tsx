@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -10,9 +10,14 @@ import {
   Palette,
   Briefcase,
   Plus,
-  ChevronRight,
-  ChevronLeft,
+  PanelLeft,
+  X,
   Lightbulb,
+  Zap,
+  Target,
+  Coffee,
+  PenTool,
+  Terminal,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import paletteLogo from '@/assets/palette-logo.jpeg';
@@ -29,42 +34,43 @@ const mainNavItems = [
   { title: 'Favorites', url: '/favorites', icon: Star },
 ];
 
-const quickTips = [
-  "Tap icons to navigate quickly",
-  "Expand to see workspace names",
-  "Long press for quick actions",
-];
+// Focus-specific tips
+const focusTips = {
+  productive: [
+    { icon: Coffee, text: "Take breaks every 25 minutes" },
+    { icon: Target, text: "Set 3 priorities for today" },
+  ],
+  tech: [
+    { icon: Terminal, text: "Commit code before switching tasks" },
+    { icon: Zap, text: "Test your changes frequently" },
+  ],
+  design: [
+    { icon: PenTool, text: "Save versions as you iterate" },
+    { icon: Palette, text: "Check contrast ratios" },
+  ],
+};
+
+// Focus-specific create button
+const focusCreate = {
+  productive: { icon: Briefcase, label: 'New Workspace' },
+  tech: { icon: Code, label: 'New Project' },
+  design: { icon: Palette, label: 'New Design' },
+};
 
 export function MobileSidebar() {
-  const [expanded, setExpanded] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const { boards } = useBoards();
   const { focusMode } = useFocus();
+  const location = useLocation();
 
   useEffect(() => {
-    const handleToggle = () => setExpanded(prev => !prev);
-    window.addEventListener('toggle-sidebar', handleToggle);
-    return () => window.removeEventListener('toggle-sidebar', handleToggle);
-  }, []);
-
-  useEffect(() => {
-    if (expanded) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-  }, [expanded]);
+    setIsCollapsed(true);
+  }, [location.pathname]);
 
   const favoriteBoards = boards.filter(b => b.isFavorite).slice(0, 5);
-
-  const getCreateIcon = () => {
-    switch (focusMode) {
-      case 'tech': return Code;
-      case 'design': return Palette;
-      default: return Briefcase;
-    }
-  };
-
-  const CreateIcon = getCreateIcon();
+  const currentTips = focusTips[focusMode] || focusTips.productive;
+  const createConfig = focusCreate[focusMode] || focusCreate.productive;
+  const CreateIcon = createConfig.icon;
 
   const getBoardColorClass = (color: string) => {
     const colors: Record<string, string> = {
@@ -78,34 +84,38 @@ export function MobileSidebar() {
     return colors[color] || 'bg-primary';
   };
 
-  // Icons-only sidebar (permanent)
-  const IconsOnlySidebar = () => (
-    <aside className="fixed left-0 top-14 bottom-0 w-16 bg-sidebar border-r border-sidebar-border flex flex-col items-center py-4 gap-2 z-30 md:hidden">
+  // Collapsed sidebar
+  const CollapsedBar = () => (
+    <aside className="fixed left-0 top-14 bottom-0 w-14 bg-background border-r border-border flex flex-col items-center py-3 gap-1 z-30 md:hidden">
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setExpanded(true)}
-        className="h-10 w-10 rounded-xl mb-2 hover:bg-sidebar-accent"
+        onClick={() => setIsCollapsed(false)}
+        className="h-9 w-9 rounded-lg mb-2 text-muted-foreground hover:text-foreground hover:bg-muted"
       >
-        <ChevronRight className="h-5 w-5" />
+        <PanelLeft className="h-5 w-5" />
       </Button>
 
       {mainNavItems.map((item) => (
         <NavLink
           key={item.title}
           to={item.url}
-          className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-sidebar-accent active:scale-95 transition-colors"
-          activeClassName="bg-sidebar-accent text-sidebar-primary"
+          className={cn(
+            "h-9 w-9 rounded-lg flex items-center justify-center transition-all",
+            "text-muted-foreground hover:text-foreground hover:bg-muted",
+            "active:scale-95"
+          )}
+          activeClassName="bg-primary/10 text-primary"
         >
-          <item.icon className="h-5 w-5" />
+          <item.icon className="h-[18px] w-[18px]" />
         </NavLink>
       ))}
 
       <NavLink
         to="/boards/new"
-        className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-colors mt-2"
+        className="h-9 w-9 rounded-lg flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-colors mt-2"
       >
-        <Plus className="h-5 w-5" />
+        <Plus className="h-[18px] w-[18px]" />
       </NavLink>
 
       <div className="flex-1" />
@@ -114,70 +124,73 @@ export function MobileSidebar() {
         href="https://shoseki.vercel.app"
         target="_blank"
         rel="noopener noreferrer"
-        className="h-10 w-10 rounded-xl flex items-center justify-center bg-black dark:bg-white hover:opacity-80 transition-opacity"
+        className="h-9 w-9 rounded-lg flex items-center justify-center bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-opacity mb-1"
       >
-        <img src={shosekiLogo} alt="Shoseki" className="h-6 w-6 object-contain rounded" />
+        <img src={shosekiLogo} alt="Shoseki" className="h-5 w-5 object-contain rounded" />
       </a>
 
       <NavLink
         to="/profile"
-        className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-sidebar-accent active:scale-95 transition-colors"
-        activeClassName="bg-sidebar-accent"
+        className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+        activeClassName="bg-primary/10 text-primary"
       >
-        <User className="h-5 w-5" />
+        <User className="h-[18px] w-[18px]" />
       </NavLink>
 
       <NavLink
         to="/settings"
-        className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-sidebar-accent active:scale-95 transition-colors"
-        activeClassName="bg-sidebar-accent"
+        className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+        activeClassName="bg-primary/10 text-primary"
       >
-        <Settings className="h-5 w-5" />
+        <Settings className="h-[18px] w-[18px]" />
       </NavLink>
     </aside>
   );
 
-  // Expanded sidebar (overlay)
+  // Expanded sidebar
   const ExpandedSidebar = () => (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-40 md:hidden"
-        onClick={() => setExpanded(false)}
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+        onClick={() => setIsCollapsed(true)}
       />
-      <aside className="fixed left-0 top-0 h-full w-72 bg-sidebar border-r border-sidebar-border flex flex-col z-50 md:hidden">
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          <Link to="/dashboard" onClick={() => setExpanded(false)} className="flex items-center gap-3">
-            <img src={paletteLogo} alt="Palette" className="w-10 h-10 rounded-xl object-cover" />
+      <aside className="fixed left-0 top-0 h-full w-64 bg-background border-r border-border flex flex-col z-50 md:hidden shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <img src={paletteLogo} alt="PALETTE" className="w-9 h-9 rounded-xl object-cover" />
             <div>
-              <span className="font-bold text-lg">Palette</span>
-              <p className="text-xs text-muted-foreground">Creative Workspace</p>
+              <span className="font-bold text-lg tracking-tight">PALETTE</span>
             </div>
           </Link>
-          <Button variant="ghost" size="icon" onClick={() => setExpanded(false)} className="h-8 w-8">
-            <ChevronLeft className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsCollapsed(true)}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            <NavLink
-              to="/boards/new"
-              onClick={() => setExpanded(false)}
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg active:scale-95 transition-all"
-            >
-              <Plus className="h-5 w-5" />
-              <span>New Workspace</span>
-            </NavLink>
-          </div>
+        <ScrollArea className="flex-1 px-3 py-2">
+          {/* Dynamic Create Button */}
+          <NavLink
+            to="/boards/new"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium mb-4 active:scale-95 transition-all shadow-sm"
+          >
+            <CreateIcon className="h-5 w-5" />
+            <span>{createConfig.label}</span>
+          </NavLink>
 
-          <nav className="px-3 space-y-1">
+          {/* Main Nav */}
+          <nav className="space-y-0.5">
             {mainNavItems.map((item) => (
               <NavLink
                 key={item.title}
                 to={item.url}
-                onClick={() => setExpanded(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
-                activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+                activeClassName="bg-muted text-foreground font-medium"
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="text-sm">{item.title}</span>
@@ -185,21 +198,21 @@ export function MobileSidebar() {
             ))}
           </nav>
 
+          {/* Favorites */}
           {favoriteBoards.length > 0 && (
-            <div className="px-3 mt-4">
-              <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <div className="mt-6">
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                 Favorites
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {favoriteBoards.map((board) => (
                   <NavLink
                     key={board.id}
                     to={`/boards/${board.id}`}
-                    onClick={() => setExpanded(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
-                    activeClassName="bg-sidebar-accent"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+                    activeClassName="bg-muted text-foreground"
                   >
-                    <div className={cn("w-3 h-3 rounded-sm shrink-0", getBoardColorClass(board.color))} />
+                    <div className={cn("w-2 h-2 rounded-full shrink-0", getBoardColorClass(board.color))} />
                     <span className="text-sm truncate">{board.name}</span>
                   </NavLink>
                 ))}
@@ -207,51 +220,55 @@ export function MobileSidebar() {
             </div>
           )}
 
-          <div className="px-3 mt-6">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Quick Tips
+          {/* Focus Tips - 2 tips only */}
+          <div className="mt-6">
+            <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+              {focusMode.charAt(0).toUpperCase() + focusMode.slice(1)} Tips
             </p>
             <div className="space-y-2">
-              {quickTips.map((tip, index) => (
+              {currentTips.map((tip, index) => (
                 <div key={index} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
-                  <Lightbulb className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                  <p className="text-xs text-muted-foreground leading-relaxed">{tip}</p>
+                  <tip.icon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <p className="text-xs text-muted-foreground leading-relaxed">{tip.text}</p>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Space reserved for Ko-fi (future) */}
+          <div className="mt-4 h-16 rounded-lg border-2 border-dashed border-muted flex items-center justify-center">
+            <span className="text-xs text-muted-foreground"></span>
+          </div>
         </ScrollArea>
 
-        <div className="p-3 border-t border-sidebar-border">
+        {/* Footer */}
+        <div className="p-3 border-t border-border space-y-0.5">
           <a
             href="https://shoseki.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-black dark:bg-white text-white dark:text-black transition-colors mb-2"
           >
-            <img src={shosekiLogo} alt="Shoseki" className="w-8 h-8 object-contain rounded-lg" />
+            <img src={shosekiLogo} alt="Shoseki" className="w-6 h-6 object-contain rounded" />
             <div className="flex flex-col">
-              <span className="text-sm font-bold">Shoseki</span>
-              <span className="text-xs opacity-80">AI Tools Directory</span>
+              <span className="text-sm font-semibold">Shoseki</span>
+              <span className="text-[10px] opacity-80">AI Directory</span>
             </div>
           </a>
-        </div>
-
-        <div className="border-t border-sidebar-border p-3 space-y-1">
+          
           <NavLink
             to="/profile"
-            onClick={() => setExpanded(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
-            activeClassName="bg-sidebar-accent"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+            activeClassName="bg-muted text-foreground"
           >
             <User className="h-5 w-5 shrink-0" />
             <span className="text-sm">Profile</span>
           </NavLink>
+          
           <NavLink
             to="/settings"
-            onClick={() => setExpanded(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
-            activeClassName="bg-sidebar-accent"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+            activeClassName="bg-muted text-foreground"
           >
             <Settings className="h-5 w-5 shrink-0" />
             <span className="text-sm">Settings</span>
@@ -263,8 +280,7 @@ export function MobileSidebar() {
 
   return (
     <>
-      <IconsOnlySidebar />
-      {expanded && <ExpandedSidebar />}
+      {isCollapsed ? <CollapsedBar /> : <ExpandedSidebar />}
     </>
   );
 }
