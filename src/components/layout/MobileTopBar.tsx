@@ -4,7 +4,6 @@ import { Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FocusWheel } from '@/components/features/FocusWheel';
+import { SpinningFocusWheel } from '@/components/features/SpinningFocusWheel';
 
-interface TopBarProps {
-  onMenuClick?: () => void;
-}
-
-export function TopBar({ onMenuClick }: TopBarProps) {
+export function MobileTopBar() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
 
@@ -27,19 +22,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-lg">
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2">
-          {/* Focus Wheel */}
-          <FocusWheel compact />
-
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg safe-area-pt">
+      {/* Top row: actions */}
+      <div className="flex items-center justify-between h-12 px-4">
+        <div className="flex items-center gap-1">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="text-muted-foreground relative h-9 w-9">
             <Bell className="h-5 w-5" />
@@ -57,7 +43,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => setTheme('light')}>
                 <Sun className="h-4 w-4 mr-2" />
                 Light
@@ -72,19 +58,24 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* User Avatar */}
-          {user && (
-            <Link to="/profile">
-              <Avatar className="h-8 w-8 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          )}
         </div>
+
+        {/* Profile */}
+        {user && (
+          <Link to="/profile">
+            <Avatar className="h-9 w-9 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors">
+              <AvatarImage src={user.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+        )}
+      </div>
+
+      {/* Focus Wheel - centered below actions */}
+      <div className="flex justify-center pb-3">
+        <SpinningFocusWheel />
       </div>
     </header>
   );
