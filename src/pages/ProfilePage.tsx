@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { LogOut, Camera, FolderKanban, Calendar, Loader2, Save, ImagePlus } from 'lucide-react';
+import { LogOut, Camera, FolderKanban, Calendar, Loader2, Save, ImagePlus, Pencil, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { displayNameSchema, bioSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isBannerUploading, setIsBannerUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // NEW: Edit mode toggle
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
@@ -180,12 +181,22 @@ export default function ProfilePage() {
       if (error) throw error;
 
       toast.success('Profile saved!');
+      setIsEditing(false); // Exit edit mode after save
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error('Failed to save profile');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset to original values
+    if (user) {
+      setDisplayName((user.name || '').slice(0, INPUT_LIMITS.DISPLAY_NAME));
+      setBio('');
+    }
+    setIsEditing(false);
   };
 
   return (
@@ -261,13 +272,14 @@ export default function ProfilePage() {
       <div className="pt-14 px-1">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold">{user.name}</h1>
+            <h1 className="font-display text-2xl font-bold">{displayName || user.name}</h1>
             <p className="text-muted-foreground">{user.email}</p>
+            {bio && <p className="text-sm text-muted-foreground mt-2 max-w-md">{bio}</p>}
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <FolderKanban className="h-4 w-4" />
-              {boards.length} boards
+              {boards.length} workspaces
             </span>
             <span className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
@@ -277,64 +289,110 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Profile */}
+      {/* Edit Profile Card */}
       <Card className="glass-card">
-        <CardHeader>
-          <CardTitle className="font-display text-lg">Edit Profile</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="font-display text-lg">
+            {isEditing ? 'Edit Profile' : 'Profile Information'}
+          </CardTitle>
+          {!isEditing ? (
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleSaveProfile} 
+                disabled={isSaving}
+                className="gradient-primary text-primary-foreground"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save
+              </Button>
+            </div>
+          )}
         </CardHeader>
+        
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input 
-                id="displayName" 
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value.slice(0, INPUT_LIMITS.DISPLAY_NAME))}
-                maxLength={INPUT_LIMITS.DISPLAY_NAME}
-                className="mt-1" 
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {displayName.length}/{INPUT_LIMITS.DISPLAY_NAME}
-              </p>
+          {isEditing ? (
+            // EDIT MODE
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="displayName">Display Name</Label>
+                  <Input 
+                    id="displayName" 
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value.slice(0, INPUT_LIMITS.DISPLAY_NAME))}
+                    maxLength={INPUT_LIMITS.DISPLAY_NAME}
+                    className="mt-1" 
+                    placeholder="Your name"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {displayName.length}/{INPUT_LIMITS.DISPLAY_NAME}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={user.email} 
+                    disabled 
+                    className="mt-1 bg-muted" 
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Email cannot be changed
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea 
+                  id="bio" 
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value.slice(0, INPUT_LIMITS.BIO))}
+                  maxLength={INPUT_LIMITS.BIO}
+                  placeholder="Tell us about yourself..."
+                  className="mt-1 min-h-[100px]"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {bio.length}/{INPUT_LIMITS.BIO}
+                </p>
+              </div>
+            </>
+          ) : (
+            // DISPLAY MODE
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground text-xs uppercase">Display Name</Label>
+                  <p className="font-medium text-lg">{displayName || user.name}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs uppercase">Email</Label>
+                  <p className="font-medium">{user.email}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground text-xs uppercase">Bio</Label>
+                <p className="text-muted-foreground">
+                  {bio || "No bio yet. Click Edit to add one."}
+                </p>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={user.email} 
-                disabled 
-                className="mt-1" 
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Email cannot be changed
-              </p>
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea 
-              id="bio" 
-              value={bio}
-              onChange={(e) => setBio(e.target.value.slice(0, INPUT_LIMITS.BIO))}
-              maxLength={INPUT_LIMITS.BIO}
-              placeholder="Tell us about yourself..."
-              className="mt-1 min-h-[100px]"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {bio.length}/{INPUT_LIMITS.BIO}
-            </p>
-          </div>
-
-          <Button onClick={handleSaveProfile} disabled={isSaving} className="gradient-primary text-primary-foreground">
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Save Changes
-          </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -350,7 +408,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-2xl font-bold text-primary">{boards.length}</p>
-              <p className="text-xs text-muted-foreground">Boards</p>
+              <p className="text-xs text-muted-foreground">Workspaces</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <p className="text-2xl font-bold text-secondary">{totalCards}</p>
@@ -372,19 +430,19 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Sign Out */}
+      {/* Log Out */}
       <Card className="glass-card">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <p className="font-medium text-destructive">Sign Out</p>
+              <p className="font-medium text-destructive">Log Out</p>
               <p className="text-sm text-muted-foreground">
-                Sign out of your account
+                Log out of your account
               </p>
             </div>
             <Button variant="destructive" onClick={logout}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              Log Out
             </Button>
           </div>
         </CardContent>
