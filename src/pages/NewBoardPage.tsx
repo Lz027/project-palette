@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, Zap, Grid3X3, Compass, Calendar, Lightbulb, Check, ArrowRight } from 'lucide-react';
 import { useBoards } from '@/contexts/BoardContext';
@@ -38,10 +39,23 @@ export default function NewBoardPage() {
     setStep('customize');
   };
 
-  const handleCreate = () => {
-    if (!boardName.trim()) return;
-    const newBoard = createBoard(boardName.trim(), selectedTemplate, selectedColor, boardDescription);
-    navigate(`/boards/${newBoard.id}`);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreate = async () => {
+    if (!boardName.trim() || isCreating) return;
+    setIsCreating(true);
+    try {
+      const newBoard = await createBoard(boardName.trim(), selectedTemplate, selectedColor, boardDescription);
+      if (newBoard) {
+        navigate(`/boards/${newBoard.id}`);
+      } else {
+        navigate('/boards');
+      }
+    } catch (error) {
+      console.error('Error creating board:', error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -192,12 +206,21 @@ export default function NewBoardPage() {
             </Button>
             <Button 
               onClick={handleCreate}
-              disabled={!boardName.trim()}
+              disabled={!boardName.trim() || isCreating}
               className="gradient-primary text-primary-foreground w-full sm:w-auto"
               size="lg"
             >
-              Create Board
-              <ArrowRight className="h-4 w-4 ml-2" />
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  Create Board
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </div>
