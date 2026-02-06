@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { displayNameSchema, bioSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
 import { supabase } from '@/integrations/supabase/client';
+import { StatusPicker } from '@/components/features/StatusPicker';
 
 export default function ProfilePage() {
   const { user, logout, uploadAvatar } = useAuth();
@@ -336,6 +337,9 @@ export default function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Status */}
+      <StatusPicker />
 
       {/* Stats */}
       <Card className="glass-card">

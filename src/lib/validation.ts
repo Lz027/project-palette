@@ -1,17 +1,19 @@
  import { z } from 'zod';
  
  // Constants for input limits
- export const INPUT_LIMITS = {
-   BOARD_NAME: 200,
-   COLUMN_NAME: 100,
-   CARD_TITLE: 300,
-   CARD_DESCRIPTION: 2000,
-   DISPLAY_NAME: 100,
-   BIO: 500,
-   SNIPPET_TITLE: 100,
-   SNIPPET_CODE: 10000,
-   CELL_VALUE: 1000,
- } as const;
+export const INPUT_LIMITS = {
+  BOARD_NAME: 200,
+  COLUMN_NAME: 100,
+  CARD_TITLE: 300,
+  CARD_DESCRIPTION: 2000,
+  DISPLAY_NAME: 100,
+  BIO: 500,
+  SNIPPET_TITLE: 100,
+  SNIPPET_CODE: 10000,
+  CELL_VALUE: 1000,
+  NOTE_TITLE: 100,
+  NOTE_CONTENT: 2000,
+} as const;
  
  // Validation schemas
  export const boardNameSchema = z.string()

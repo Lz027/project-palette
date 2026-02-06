@@ -16,7 +16,7 @@ const focusModeColors: Record<FocusMode, FocusColors> = {
     secondary: '280 50% 65%',
     accent: '340 60% 70%',
     name: 'Productive',
-    createLabel: 'Create Project',
+    createLabel: 'Create Workspace',
   },
   design: {
     primary: '45 85% 60%', // Yellow
