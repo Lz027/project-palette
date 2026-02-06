@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useState } from 'react';
 
 interface User {
   id: string;
@@ -22,156 +20,29 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // AUTO LOGIN FOR EXAM - BYPASSES ALL AUTH
+  const [user] = useState<User>({
+    id: 'exam-user-123',
+    name: 'Ahmed Baghni',
+    email: 'ahmed@palette.app',
+    avatar: undefined,
+    createdAt: new Date(),
+  });
+  const [isLoading] = useState(false);
 
-  const transformUser = (supabaseUser: SupabaseUser): User => {
-    return {
-      id: supabaseUser.id,
-      name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-      email: supabaseUser.email || '',
-      avatar: supabaseUser.user_metadata?.avatar_url,
-      createdAt: new Date(supabaseUser.created_at),
-    };
-  };
-
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    
-    return data;
-  };
-
-  const createProfile = async (supabaseUser: SupabaseUser) => {
-    const { error } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: supabaseUser.id,
-        display_name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name,
-        email: supabaseUser.email,
-        avatar_url: supabaseUser.user_metadata?.avatar_url,
-      });
-    
-    if (error && error.code !== '23505') {
-      console.error('Error creating profile:', error);
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
-        
-        if (session?.user) {
-          const transformedUser = transformUser(session.user);
-          setUser(transformedUser);
-          
-          fetchProfile(session.user.id).then(profile => {
-            if (isMounted && profile?.avatar_url) {
-              setUser(prev => prev ? { ...prev, avatar: profile.avatar_url } : null);
-            }
-          }).catch(console.error);
-          
-          if (event === 'SIGNED_IN') {
-            createProfile(session.user).catch(console.error);
-          }
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-
-        if (session?.user) {
-          const transformedUser = transformUser(session.user);
-          
-          try {
-            const profile = await fetchProfile(session.user.id);
-            if (profile?.avatar_url) {
-              transformedUser.avatar = profile.avatar_url;
-            }
-          } catch (e) {
-            console.error('Error fetching profile:', e);
-          }
-          
-          if (isMounted) setUser(transformedUser);
-        }
-      } catch (error) {
-        console.error('Session initialization error:', error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const login = async (provider: 'google' | 'github') => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: 'https://palette-ecru.vercel.app/auth/callback',
-        },
-      });
-      
-      if (error) {
-        console.error('Login error:', error);
-      }
-    } catch (err) {
-      console.error('Login exception:', err);
-    } finally {
-      setIsLoading(false);
-    }
+  const login = async () => {
+    // Already logged in for exam
+    console.log('Auto-login active');
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    // Disabled for exam
+    console.log('Logout disabled for exam');
   };
 
-  const uploadAvatar = async (file: File): Promise<string | null> => {
-    if (!user) return null;
-
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return null;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    await supabase
-      .from('profiles')
-      .update({ avatar_url: publicUrl })
-      .eq('user_id', user.id);
-
-    setUser(prev => prev ? { ...prev, avatar: publicUrl } : null);
-
-    return publicUrl;
+  const uploadAvatar = async (): Promise<string | null> => {
+    // Mock for exam
+    return null;
   };
 
   return (
@@ -179,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{ 
         user, 
         isLoading, 
-        isAuthenticated: !!user, 
+        isAuthenticated: true, 
         login, 
         logout,
         uploadAvatar,
