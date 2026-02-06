@@ -8,15 +8,15 @@ import { cn } from '@/lib/utils';
 // Tech tools with logos and URLs
 const techTools = [
   { id: 'lovable', name: 'Lovable', logo: 'https://lovable.dev/favicon.ico', url: 'https://lovable.dev', category: 'AI Builder' },
-  { id: 'replit', name: 'Replit', logo: 'https://replit.com/public/icons/favicon-196.png', url: 'https://replit.com', category: 'AI Builder' },
+  { id: 'replit', name: 'Replit', logo: 'https://cdn.replit.com/dotcom/favicon.ico', url: 'https://replit.com', category: 'AI Builder' },
   { id: 'cursor', name: 'Cursor', logo: 'https://www.cursor.com/favicon.ico', url: 'https://cursor.com', category: 'AI Editor' },
-  { id: 'manus', name: 'Manus', logo: 'https://manus.im/favicon.ico', url: 'https://manus.im', category: 'AI Agent' },
+  { id: 'manus', name: 'Manus', logo: 'https://manus.im/favicon.svg', url: 'https://manus.im', category: 'AI Agent' },
   { id: 'kimi', name: 'Kimi', logo: 'https://kimi.ai/favicon.ico', url: 'https://kimi.ai', category: 'AI Agent' },
   { id: 'github', name: 'GitHub', logo: 'https://github.githubassets.com/favicons/favicon.svg', url: 'https://github.com', category: 'Git' },
   { id: 'supabase', name: 'Supabase', logo: 'https://supabase.com/favicon/favicon-32x32.png', url: 'https://supabase.com', category: 'Database' },
   { id: 'vercel', name: 'Vercel', logo: 'https://vercel.com/favicon.ico', url: 'https://vercel.com', category: 'Deploy' },
-  { id: 'bolt', name: 'Bolt.new', logo: 'https://bolt.new/favicon.ico', url: 'https://bolt.new', category: 'AI Builder' },
-  { id: 'v0', name: 'v0.dev', logo: 'https://v0.dev/favicon.ico', url: 'https://v0.dev', category: 'AI Builder' },
+  { id: 'bolt', name: 'Bolt.new', logo: 'https://bolt.new/favicon.svg', url: 'https://bolt.new', category: 'AI Builder' },
+  { id: 'v0', name: 'v0.dev', logo: 'https://v0.dev/icon-dark.svg', url: 'https://v0.dev', category: 'AI Builder' },
   { id: 'genspark', name: 'Genspark', logo: 'https://www.genspark.ai/favicon.ico', url: 'https://genspark.ai', category: 'AI Search' },
 ];
 
@@ -36,19 +36,14 @@ const designTools = [
 
 // Productivity tools (all tools catalog)
 const productivityTools = [
-  { id: 'notion', name: 'Notion', logo: 'https://www.notion.so/images/favicon.ico', url: 'https://notion.so', category: 'Notes' },
   { id: 'linear', name: 'Linear', logo: 'https://linear.app/favicon.ico', url: 'https://linear.app', category: 'Project' },
   { id: 'slack', name: 'Slack', logo: 'https://a.slack-edge.com/80588/marketing/img/meta/favicon-32.png', url: 'https://slack.com', category: 'Chat' },
-  { id: 'discord', name: 'Discord', logo: 'https://discord.com/assets/favicon.ico', url: 'https://discord.com', category: 'Chat' },
-  { id: 'cal', name: 'Cal.com', logo: 'https://cal.com/favicon.ico', url: 'https://cal.com', category: 'Calendar' },
   { id: 'loom', name: 'Loom', logo: 'https://cdn.loom.com/assets/favicons-loom/favicon.ico', url: 'https://loom.com', category: 'Video' },
   { id: 'excalidraw', name: 'Excalidraw', logo: 'https://excalidraw.com/favicon.ico', url: 'https://excalidraw.com', category: 'Whiteboard' },
-  { id: 'perplexity', name: 'Perplexity', logo: 'https://www.perplexity.ai/favicon.ico', url: 'https://perplexity.ai', category: 'AI Search' },
   { id: 'genspark', name: 'Genspark', logo: 'https://www.genspark.ai/favicon.ico', url: 'https://genspark.ai', category: 'AI Search' },
-  { id: 'chatgpt', name: 'ChatGPT', logo: 'https://chat.openai.com/favicon.ico', url: 'https://chat.openai.com', category: 'AI Chat' },
-  { id: 'claude', name: 'Claude', logo: 'https://claude.ai/favicon.ico', url: 'https://claude.ai', category: 'AI Chat' },
-  { id: 'manus', name: 'Manus', logo: 'https://manus.im/favicon.ico', url: 'https://manus.im', category: 'AI Agent' },
+  { id: 'manus', name: 'Manus', logo: 'https://manus.im/favicon.svg', url: 'https://manus.im', category: 'AI Agent' },
   { id: 'kimi', name: 'Kimi', logo: 'https://kimi.ai/favicon.ico', url: 'https://kimi.ai', category: 'AI Agent' },
+  { id: 'poe', name: 'Poe AI', logo: 'https://poe.com/favicon.ico', url: 'https://poe.com', category: 'AI Chat' },
   { id: 'todoist', name: 'Todoist', logo: 'https://todoist.com/favicon.ico', url: 'https://todoist.com', category: 'Tasks' },
   { id: 'airtable', name: 'Airtable', logo: 'https://airtable.com/favicon.ico', url: 'https://airtable.com', category: 'Database' },
 ];

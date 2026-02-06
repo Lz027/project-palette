@@ -9,6 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BoardCard } from '@/components/boards/BoardCard';
 import { FocusToolsPanel } from '@/components/features/FocusToolsPanel';
 import { CodeSnippets } from '@/components/features/CodeSnippets';
+import { NoteTaker } from '@/components/features/NoteTaker';
+import { ImageEditor } from '@/components/features/ImageEditor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -59,10 +61,14 @@ export default function DashboardPage() {
       {/* Focus Tools Panel */}
       <div className={cn(
         "grid gap-4",
-        focusMode === 'tech' ? "md:grid-cols-2" : "grid-cols-1"
+        focusMode === 'tech' ? "md:grid-cols-2" : 
+        focusMode === 'design' ? "md:grid-cols-2" : 
+        "md:grid-cols-2"
       )}>
         <FocusToolsPanel compact={isMobile} />
         {focusMode === 'tech' && <CodeSnippets />}
+        {focusMode === 'design' && <ImageEditor />}
+        {focusMode === 'productive' && <NoteTaker />}
       </div>
 
       {/* Stats Cards */}
