@@ -41,8 +41,10 @@ function LayoutContent() {
 }
 
 export function AppLayout() {
+  const isMobile = useIsMobile();
+  
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={!isMobile}>
       <LayoutContent />
     </SidebarProvider>
   );
