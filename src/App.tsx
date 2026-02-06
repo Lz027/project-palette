@@ -37,6 +37,9 @@ const App = () => (
                   {/* Public routes */}
                   <Route path="/login" element={<LoginPage />} />
                   
+                  {/* Auth callback - handles OAuth redirects */}
+                  <Route path="/auth/callback" element={<Navigate to="/dashboard" replace />} />
+                  
                   {/* Protected routes with layout */}
                   <Route element={
                     <ProtectedRoute>

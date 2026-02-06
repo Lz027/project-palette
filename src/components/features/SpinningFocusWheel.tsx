@@ -6,21 +6,23 @@ import type { FocusMode } from '@/contexts/FocusContext';
 
 interface SpinningFocusWheelProps {
   className?: string;
+  size?: 'default' | 'compact';
 }
 
-const focusModes: { id: FocusMode; label: string; icon: React.ReactNode; color: string; bgColor: string }[] = [
-  { id: 'tech', label: 'Tech', icon: <Code className="w-4 h-4" />, color: 'text-blue-500', bgColor: 'bg-blue-500' },
-  { id: 'productive', label: 'Focus', icon: <Target className="w-4 h-4" />, color: 'text-rose-500', bgColor: 'bg-rose-500' },
-  { id: 'design', label: 'Design', icon: <Palette className="w-4 h-4" />, color: 'text-amber-500', bgColor: 'bg-amber-500' },
+const focusModes: { id: FocusMode; label: string; icon: React.ReactNode; smallIcon: React.ReactNode; color: string; bgColor: string }[] = [
+  { id: 'tech', label: 'Tech', icon: <Code className="w-4 h-4" />, smallIcon: <Code className="w-3 h-3" />, color: 'text-blue-500', bgColor: 'bg-blue-500' },
+  { id: 'productive', label: 'Focus', icon: <Target className="w-4 h-4" />, smallIcon: <Target className="w-3 h-3" />, color: 'text-rose-500', bgColor: 'bg-rose-500' },
+  { id: 'design', label: 'Design', icon: <Palette className="w-4 h-4" />, smallIcon: <Palette className="w-3 h-3" />, color: 'text-amber-500', bgColor: 'bg-amber-500' },
 ];
 
-export function SpinningFocusWheel({ className }: SpinningFocusWheelProps) {
+export function SpinningFocusWheel({ className, size = 'default' }: SpinningFocusWheelProps) {
   const { focusMode, setFocusMode } = useFocus();
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startAngle, setStartAngle] = useState(0);
   const wheelRef = useRef<HTMLDivElement>(null);
   
+  const isCompact = size === 'compact';
   const currentIndex = focusModes.findIndex(m => m.id === focusMode);
   const currentMode = focusModes[currentIndex];
 
@@ -73,12 +75,18 @@ export function SpinningFocusWheel({ className }: SpinningFocusWheelProps) {
     setFocusMode(focusModes[nextIndex].id);
   };
 
+  // Sizing based on variant
+  const wheelSize = isCompact ? 'w-10 h-10' : 'w-20 h-20';
+  const segmentSize = isCompact ? 'w-4 h-4' : 'w-8 h-8';
+  const segmentOffset = isCompact ? 12 : 24;
+  const centerSize = isCompact ? 'w-3 h-3' : 'w-6 h-6';
+
   return (
-    <div className={cn("flex flex-col items-center gap-2", className)}>
+    <div className={cn("flex flex-col items-center", isCompact ? "gap-0" : "gap-2", className)}>
       {/* Spinning Wheel */}
       <div
         ref={wheelRef}
-        className="relative w-20 h-20 cursor-grab active:cursor-grabbing touch-none"
+        className={cn(wheelSize, "relative cursor-grab active:cursor-grabbing touch-none")}
         onTouchStart={handleStart}
         onTouchMove={handleMove}
         onTouchEnd={handleEnd}
@@ -101,27 +109,29 @@ export function SpinningFocusWheel({ className }: SpinningFocusWheelProps) {
             {focusModes.map((mode, index) => {
               const angle = index * 120 - 90;
               const radians = angle * (Math.PI / 180);
-              const x = Math.cos(radians) * 24;
-              const y = Math.sin(radians) * 24;
+              const x = Math.cos(radians) * segmentOffset;
+              const y = Math.sin(radians) * segmentOffset;
+              const halfSize = isCompact ? 8 : 16;
               
               return (
                 <div
                   key={mode.id}
                   className={cn(
-                    "absolute w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all",
+                    "absolute rounded-full flex items-center justify-center shadow-md transition-all",
+                    segmentSize,
                     mode.bgColor,
                     "text-white"
                   )}
                   style={{
-                    left: `calc(50% + ${x}px - 16px)`,
-                    top: `calc(50% + ${y}px - 16px)`,
+                    left: `calc(50% + ${x}px - ${halfSize}px)`,
+                    top: `calc(50% + ${y}px - ${halfSize}px)`,
                   }}
                 >
                   <span
                     className="transition-transform"
                     style={{ transform: `rotate(${-rotation}deg)` }}
                   >
-                    {mode.icon}
+                    {isCompact ? mode.smallIcon : mode.icon}
                   </span>
                 </div>
               );
@@ -131,22 +141,30 @@ export function SpinningFocusWheel({ className }: SpinningFocusWheelProps) {
           {/* Center indicator */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className={cn(
-              "w-6 h-6 rounded-full border-2 border-background shadow-inner",
+              "rounded-full border-2 border-background shadow-inner",
+              centerSize,
               currentMode.bgColor
             )} />
           </div>
         </div>
         
         {/* Selection indicator (top) */}
-        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-primary" />
+        <div className={cn(
+          "absolute left-1/2 -translate-x-1/2 w-0 h-0 border-l-transparent border-r-transparent border-t-primary",
+          isCompact 
+            ? "-top-0.5 border-l-[3px] border-r-[3px] border-t-[4px]"
+            : "-top-1 border-l-[6px] border-r-[6px] border-t-[8px]"
+        )} />
       </div>
       
-      {/* Current mode label */}
-      <div className="text-center">
-        <p className={cn("text-sm font-semibold", currentMode.color)}>
-          {currentMode.label}
-        </p>
-      </div>
+      {/* Current mode label - hide on compact */}
+      {!isCompact && (
+        <div className="text-center">
+          <p className={cn("text-sm font-semibold", currentMode.color)}>
+            {currentMode.label}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
