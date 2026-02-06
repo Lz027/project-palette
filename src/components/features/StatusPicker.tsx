@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CircleDot, Plus, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { safeParseLocalStorage, safeSetLocalStorage } from '@/lib/safe-storage';
+
+// Schema for validating status data from localStorage
+const statusSchema = z.object({
+  id: z.string(),
+  name: z.string().max(30),
+  color: z.string(),
+});
+
+const statusArraySchema = z.array(statusSchema);
 
 interface Status {
   id: string;
@@ -19,24 +30,26 @@ const defaultStatuses: Status[] = [
   { id: 'dnd', name: 'Do Not Disturb', color: '280 50% 60%' },
 ];
 
+const STORAGE_KEY_STATUSES = 'palette-user-statuses';
+const STORAGE_KEY_CURRENT = 'palette-current-status';
+
 interface StatusPickerProps {
   className?: string;
 }
 
 export function StatusPicker({ className }: StatusPickerProps) {
   const [statuses, setStatuses] = useState<Status[]>(() => {
-    const saved = localStorage.getItem('palette-user-statuses');
-    return saved ? JSON.parse(saved) : defaultStatuses;
+    return safeParseLocalStorage(STORAGE_KEY_STATUSES, statusArraySchema, defaultStatuses) as Status[];
   });
   const [currentStatus, setCurrentStatus] = useState<string>(() => {
-    return localStorage.getItem('palette-current-status') || 'available';
+    return localStorage.getItem(STORAGE_KEY_CURRENT) || 'available';
   });
   const [isAdding, setIsAdding] = useState(false);
   const [newStatus, setNewStatus] = useState({ name: '', color: '220 70% 60%' });
 
   const saveStatuses = (newStatuses: Status[]) => {
     setStatuses(newStatuses);
-    localStorage.setItem('palette-user-statuses', JSON.stringify(newStatuses));
+    safeSetLocalStorage(STORAGE_KEY_STATUSES, newStatuses);
   };
 
   const saveCurrentStatus = (statusId: string) => {
