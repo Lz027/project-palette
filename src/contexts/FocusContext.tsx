@@ -83,7 +83,7 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
   }, [colors]);
 
   const getColumnTypes = () => {
-    const baseTypes = [
+    return [
       { value: 'text', label: 'Text' },
       { value: 'number', label: 'Number' },
       { value: 'date', label: 'Date' },
@@ -91,20 +91,6 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
       { value: 'link', label: 'Link' },
       { value: 'status', label: 'Status' },
     ];
-
-    if (focusMode === 'tech') {
-      return [
-        ...baseTypes,
-        { value: 'dev-tools', label: 'Dev Tools' },
-      ];
-    } else if (focusMode === 'design') {
-      return [
-        ...baseTypes,
-        { value: 'design-tools', label: 'Design Tools' },
-      ];
-    }
-
-    return baseTypes;
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -78,7 +78,7 @@ export function MobileSidebar() {
           variant="ghost"
           size="icon"
           onClick={() => setExpanded(!expanded)}
-          className="absolute -right-3 top-3 z-50 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-muted"
+          className="absolute -right-3 top-3 z-50 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-muted touch-manipulation"
         >
           {expanded ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </Button>
@@ -108,7 +108,7 @@ export function MobileSidebar() {
                   )}
                   activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                 >
-                  <item.icon className="h-4.5 w-4.5 shrink-0" />
+                  <item.icon className="h-5 w-5 shrink-0" />
                   {expanded && <span className="text-sm truncate">{item.title}</span>}
                 </NavLink>
               );
@@ -132,9 +132,9 @@ export function MobileSidebar() {
                 <TooltipTrigger asChild>
                   <NavLink
                     to={createAction.url}
-                    className="flex items-center justify-center p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary active:scale-95"
+                    className="flex items-center justify-center p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary active:scale-95 touch-manipulation"
                   >
-                    <createAction.icon className="h-4.5 w-4.5" />
+                    <createAction.icon className="h-5 w-5" />
                   </NavLink>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={8}>{createAction.label}</TooltipContent>
@@ -142,9 +142,9 @@ export function MobileSidebar() {
             ) : (
               <NavLink
                 to={createAction.url}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium active:scale-95"
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium active:scale-95 touch-manipulation"
               >
-                <createAction.icon className="h-4.5 w-4.5" />
+                <createAction.icon className="h-5 w-5" />
                 <span className="text-sm">{createAction.label}</span>
               </NavLink>
             )}
@@ -178,9 +178,9 @@ export function MobileSidebar() {
                   href="https://shoseki.vercel.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10"
+                  className="flex items-center justify-center p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 touch-manipulation"
                 >
-                  <img src={shosekiLogo} alt="Shoseki" className="w-4.5 h-4.5 object-contain" />
+                  <img src={shosekiLogo} alt="Shoseki" className="w-5 h-5 object-contain" />
                 </a>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={8}>Shoseki AI Directory</TooltipContent>
@@ -190,7 +190,7 @@ export function MobileSidebar() {
               href="https://shoseki.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-foreground/5 hover:bg-foreground/10"
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 touch-manipulation"
             >
               <img src={shosekiLogo} alt="Shoseki" className="w-5 h-5 object-contain" />
               <div className="flex flex-col">
@@ -217,7 +217,7 @@ export function MobileSidebar() {
                 )}
                 activeClassName="bg-sidebar-accent"
               >
-                <item.icon className="h-4.5 w-4.5 shrink-0" />
+                <item.icon className="h-5 w-5 shrink-0" />
                 {expanded && <span className="text-sm">{item.title}</span>}
               </NavLink>
             );

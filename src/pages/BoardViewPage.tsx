@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Plus, Trash2, Type, Hash, Calendar, Paperclip, Link as LinkIcon, Check, X, Wrench, Palette, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Star, Plus, Trash2, Type, Hash, Calendar, Paperclip, Link as LinkIcon, Check, X, CheckSquare, Upload, FileIcon, Loader2 } from 'lucide-react';
 import { useBoards } from '@/contexts/BoardContext';
-import { useFocus, devTools, designTools, defaultStatuses } from '@/contexts/FocusContext';
+import { useFocus, defaultStatuses } from '@/contexts/FocusContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,9 +13,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { ColumnType } from '@/types';
 
-type ExtendedColumnType = ColumnType | 'dev-tools' | 'design-tools' | 'status';
+type ExtendedColumnType = ColumnType | 'status';
 
 const columnTypeConfig: Record<ExtendedColumnType, { icon: React.ElementType; label: string }> = {
   text: { icon: Type, label: 'Text' },
@@ -23,8 +25,6 @@ const columnTypeConfig: Record<ExtendedColumnType, { icon: React.ElementType; la
   date: { icon: Calendar, label: 'Date' },
   file: { icon: Paperclip, label: 'File' },
   link: { icon: LinkIcon, label: 'Link' },
-  'dev-tools': { icon: Wrench, label: 'Dev Tools' },
-  'design-tools': { icon: Palette, label: 'Design Tools' },
   'status': { icon: CheckSquare, label: 'Status' },
 };
 
@@ -42,11 +42,15 @@ export default function BoardViewPage() {
   const [editingCell, setEditingCell] = useState<{ rowId: string; colId: string } | null>(null);
   const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
   const [editingColumnName, setEditingColumnName] = useState('');
+  const [uploadingCell, setUploadingCell] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFileCell, setPendingFileCell] = useState<{ rowId: string; colId: string } | null>(null);
 
   if (!board) {
     return <Navigate to="/boards" replace />;
   }
 
+  // ... keep existing code (handleAddColumn, handleAddRow, handleCellChange, handleDeleteRow, handleColumnTypeChange, getColumnType, startEditingColumn, saveColumnName, cancelEditingColumn)
   const handleAddColumn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newColumnName.trim()) return;
@@ -96,6 +100,47 @@ export default function BoardViewPage() {
     setEditingColumnName('');
   };
 
+  const handleFileUpload = async (file: File, rowId: string, colId: string) => {
+    const cellKey = `${rowId}-${colId}`;
+    setUploadingCell(cellKey);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${boardId}/${colId}/${rowId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('board-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('board-files')
+        .getPublicUrl(filePath);
+
+      handleCellChange(rowId, colId, JSON.stringify({ name: file.name, url: publicUrl }));
+      toast.success('File uploaded');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload file');
+    } finally {
+      setUploadingCell(null);
+    }
+  };
+
+  const triggerFileUpload = (rowId: string, colId: string) => {
+    setPendingFileCell({ rowId, colId });
+    fileInputRef.current?.click();
+  };
+
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && pendingFileCell) {
+      handleFileUpload(file, pendingFileCell.rowId, pendingFileCell.colId);
+    }
+    e.target.value = '';
+    setPendingFileCell(null);
+  };
+
   const availableColumnTypes = getColumnTypes();
 
   const renderCellInput = (rowId: string, colId: string, type: ExtendedColumnType) => {
@@ -124,59 +169,42 @@ export default function BoardViewPage() {
             className={cn(inputProps.className, value && "text-primary underline")}
           />
         );
-      case 'file':
+      case 'file': {
+        const cellKey = `${rowId}-${colId}`;
+        const isUploading = uploadingCell === cellKey;
+        let fileData: { name: string; url: string } | null = null;
+        try {
+          if (value) fileData = JSON.parse(value);
+        } catch {}
+        
         return (
-          <div className="flex items-center gap-2 px-3 h-9">
-            <Button variant="ghost" size="sm" className="h-7 text-xs">
-              Upload
-            </Button>
-            {value && <span className="text-xs text-muted-foreground truncate">{value}</span>}
+          <div className="flex items-center gap-1.5 px-2 h-9">
+            {isUploading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : fileData ? (
+              <a
+                href={fileData.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline truncate"
+              >
+                <FileIcon className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{fileData.name}</span>
+              </a>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => triggerFileUpload(rowId, colId)}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload
+              </Button>
+            )}
           </div>
         );
-      case 'dev-tools':
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 w-full justify-start px-3 text-sm font-normal">
-                {value ? devTools.find(t => t.id === value)?.name || 'Select tool' : 'Select tool'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48">
-              {devTools.map(tool => (
-                <DropdownMenuItem 
-                  key={tool.id} 
-                  onClick={() => handleCellChange(rowId, colId, tool.id)}
-                  className={cn(value === tool.id && "bg-accent")}
-                >
-                  <span className="mr-2">{tool.icon}</span>
-                  {tool.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      case 'design-tools':
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 w-full justify-start px-3 text-sm font-normal">
-                {value ? designTools.find(t => t.id === value)?.name || 'Select tool' : 'Select tool'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48">
-              {designTools.map(tool => (
-                <DropdownMenuItem 
-                  key={tool.id} 
-                  onClick={() => handleCellChange(rowId, colId, tool.id)}
-                  className={cn(value === tool.id && "bg-accent")}
-                >
-                  <span className="mr-2">{tool.icon}</span>
-                  {tool.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+      }
       case 'status':
         const selectedStatus = defaultStatuses.find(s => s.id === value);
         return (
@@ -217,8 +245,15 @@ export default function BoardViewPage() {
   };
 
   return (
-    <div className="h-full flex flex-col -m-4 md:-m-6">
-      {/* Board Header */}
+    <div className="h-full flex flex-col -m-3 md:-m-6">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={onFileInputChange}
+        accept="*/*"
+      />
       <div className="p-4 md:p-6 border-b border-border bg-card">
         <div className="flex items-center gap-4">
           <Button 
