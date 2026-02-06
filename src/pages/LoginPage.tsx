@@ -83,7 +83,7 @@ export default function LoginPage() {
           </div>
           
           {/* App name with elegant typography */}
-          <h1 className="font-display text-4xl font-bold tracking-widest mt-6 opacity-0 animate-[fade-in_0.5s_ease-out_0.2s_forwards]">
+          <h1 className="font-display text-4xl font-bold tracking-tight mt-6 opacity-0 animate-[fade-in_0.5s_ease-out_0.2s_forwards]">
             <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_auto] animate-[gradient-shift_3s_ease-in-out_infinite] bg-clip-text text-transparent">
               PALETTE
             </span>
