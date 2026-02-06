@@ -175,7 +175,7 @@ export function AppSidebar() {
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg bg-foreground transition-all hover:opacity-90",
+            "flex items-center gap-3 px-3 py-3 rounded-lg bg-black transition-all hover:opacity-90",
             collapsed && "justify-center px-2"
           )}
         >
@@ -186,8 +186,8 @@ export function AppSidebar() {
           />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-background">Shoseki</span>
-              <span className="text-xs text-background/70">AI Directory</span>
+              <span className="text-sm font-medium text-white">Shoseki</span>
+              <span className="text-xs text-white/70">AI Directory</span>
             </div>
           )}
         </a>
