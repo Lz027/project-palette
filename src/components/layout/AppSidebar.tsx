@@ -106,23 +106,6 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Create New Board Button */}
-          <div className="px-2 py-3">
-            <Button 
-              asChild 
-              className={cn(
-                "w-full gradient-primary text-primary-foreground",
-                collapsed && "px-0 justify-center"
-              )}
-              size={collapsed ? "icon" : "default"}
-            >
-              <Link to="/boards/new">
-                <Plus className="h-4 w-4" />
-                {!collapsed && <span className="ml-2">New Board</span>}
-              </Link>
-            </Button>
-          </div>
-
           {/* Favorite Boards */}
           {!collapsed && favoriteBoards.length > 0 && (
             <SidebarGroup>
@@ -192,7 +175,7 @@ export function AppSidebar() {
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg bg-foreground transition-all hover:opacity-90",
+            "flex items-center gap-3 px-3 py-3 rounded-lg bg-black transition-all hover:opacity-90",
             collapsed && "justify-center px-2"
           )}
         >
@@ -203,8 +186,8 @@ export function AppSidebar() {
           />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-background">Shoseki</span>
-              <span className="text-xs text-background/70">AI Directory</span>
+              <span className="text-sm font-medium text-white">Shoseki</span>
+              <span className="text-xs text-white/70">AI Directory</span>
             </div>
           )}
         </a>
