@@ -15,7 +15,8 @@ function MobileLayout() {
       <MobileTopBar />
       <div className="flex flex-1 w-full overflow-hidden">
         <MobileSidebar />
-        <main className="flex-1 overflow-auto p-3 pb-20">
+        {/* Added pl-14 for sidebar width + proper padding */}
+        <main className="flex-1 overflow-auto p-3 pb-20 pl-16">
           <Outlet />
         </main>
       </div>
