@@ -61,48 +61,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session?.user) {
-          const transformedUser = transformUser(session.user);
-          
-          // Try to get profile with avatar
-          const profile = await fetchProfile(session.user.id);
-          if (profile?.avatar_url) {
-            transformedUser.avatar = profile.avatar_url;
+        if (!mounted) return;
+        
+        try {
+          if (session?.user) {
+            const transformedUser = transformUser(session.user);
+            
+            // Try to get profile with avatar (don't block on this)
+            try {
+              const profile = await fetchProfile(session.user.id);
+              if (profile?.avatar_url) {
+                transformedUser.avatar = profile.avatar_url;
+              }
+            } catch (e) {
+              console.error('Error fetching profile:', e);
+            }
+            
+            if (mounted) setUser(transformedUser);
+            
+            // Create profile if signing in for first time (don't await)
+            if (event === 'SIGNED_IN') {
+              createProfile(session.user).catch(console.error);
+            }
+          } else {
+            if (mounted) setUser(null);
           }
-          
-          setUser(transformedUser);
-          
-          // Create profile if signing in for first time
-          if (event === 'SIGNED_IN') {
-            await createProfile(session.user);
-          }
-        } else {
-          setUser(null);
+        } catch (error) {
+          console.error('Auth state change error:', error);
+        } finally {
+          if (mounted) setIsLoading(false);
         }
-        setIsLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const transformedUser = transformUser(session.user);
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Try to get profile with avatar
-        const profile = await fetchProfile(session.user.id);
-        if (profile?.avatar_url) {
-          transformedUser.avatar = profile.avatar_url;
+        if (error) {
+          console.error('Get session error:', error);
+          if (mounted) setIsLoading(false);
+          return;
         }
         
-        setUser(transformedUser);
+        if (session?.user) {
+          const transformedUser = transformUser(session.user);
+          
+          // Try to get profile with avatar
+          try {
+            const profile = await fetchProfile(session.user.id);
+            if (profile?.avatar_url) {
+              transformedUser.avatar = profile.avatar_url;
+            }
+          } catch (e) {
+            console.error('Error fetching profile:', e);
+          }
+          
+          if (mounted) setUser(transformedUser);
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error);
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+
+    initSession();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
