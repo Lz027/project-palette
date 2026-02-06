@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Bell, Moon, Sun, Monitor, Menu } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Search, Bell, Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FocusWheel } from '@/components/features/FocusWheel';
-import paletteLogo from '@/assets/palette-logo.jpeg';
+import { SwipeableFocusWheel } from '@/components/features/SwipeableFocusWheel';
 
 interface TopBarProps {
   onMenuClick?: () => void;
@@ -32,35 +32,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-lg">
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between h-14 px-3 md:px-4">
+        <div className="flex items-center gap-2">
           {!isMobile && <SidebarTrigger className="text-muted-foreground hover:text-foreground" />}
-          
-          {isMobile && (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={onMenuClick}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <Link to="/dashboard" className="flex items-center gap-2">
-                <img 
-                  src={paletteLogo} 
-                  alt="Palette" 
-                  className="w-7 h-7 rounded-full object-cover"
-                />
-                <span className="font-display font-bold text-lg text-gradient">
-                  Palette
-                </span>
-              </Link>
-            </div>
-          )}
         </div>
 
-        {/* Search - Desktop only */}
+        {/* Mobile: Swipeable Focus Wheel centered */}
+        {isMobile && (
+          <div className="flex-1 flex justify-center">
+            <SwipeableFocusWheel />
+          </div>
+        )}
+
+        {/* Desktop: Search bar */}
         {!isMobile && (
           <div className="flex-1 max-w-md mx-4">
             <div className="relative">
@@ -73,15 +57,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         )}
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Focus Wheel - single location in the UI */}
-          <FocusWheel compact />
+        <div className="flex items-center gap-1">
+          {/* Desktop: Focus Wheel */}
+          {!isMobile && <FocusWheel compact />}
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="text-muted-foreground relative h-9 w-9">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-          </Button>
+          {/* Notifications - hide on mobile to save space */}
+          {!isMobile && (
+            <Button variant="ghost" size="icon" className="text-muted-foreground relative h-9 w-9">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+            </Button>
+          )}
 
           {/* Theme Toggle */}
           <DropdownMenu>
@@ -110,8 +96,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* User Avatar */}
-          {user && (
+          {/* User Avatar - Desktop only, mobile has it in nav bar */}
+          {user && !isMobile && (
             <Link to="/profile">
               <Avatar className="h-8 w-8 border-2 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors">
                 <AvatarImage src={user.avatar} />
