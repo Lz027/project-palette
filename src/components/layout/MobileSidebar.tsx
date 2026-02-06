@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -6,11 +6,10 @@ import {
   Star,
   Settings,
   User,
-  ChevronLeft,
-  ChevronRight,
   Code,
   Palette,
   Briefcase,
+  X,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import paletteLogo from '@/assets/palette-logo.jpeg';
@@ -20,12 +19,6 @@ import { useFocus } from '@/contexts/FocusContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
@@ -34,9 +27,32 @@ const mainNavItems = [
 ];
 
 export function MobileSidebar() {
-  const [expanded, setExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Always expanded when open
   const { boards } = useBoards();
   const { focusMode } = useFocus();
+
+  // Listen for toggle event from MobileTopBar
+  useEffect(() => {
+    const handleToggle = () => setIsOpen(prev => !prev);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, []);
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   const favoriteBoards = boards.filter(b => b.isFavorite).slice(0, 5);
 
@@ -66,103 +82,91 @@ export function MobileSidebar() {
   };
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <>
+      {/* OVERLAY BACKDROP - closes sidebar when clicked */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden",
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* SLIDING SIDEBAR */}
       <aside
         className={cn(
-          "h-full bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-200 relative shrink-0 z-30",
-          expanded ? "w-48" : "w-12"
+          "fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border flex flex-col z-50 transition-transform duration-300 ease-out md:hidden",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+          expanded ? "w-64" : "w-64" // Always full width on mobile
         )}
       >
-        {/* Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setExpanded(!expanded)}
-          className="absolute -right-3 top-3 z-50 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-muted touch-manipulation"
-        >
-          {expanded ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-        </Button>
-
-        {/* Logo */}
-        <div className={cn("p-2 flex justify-center", expanded && "p-3")}>
-          <Link to="/dashboard">
-            <img
-              src={paletteLogo}
-              alt="Palette"
-              className={cn("rounded-lg object-cover", expanded ? "w-9 h-9" : "w-7 h-7")}
-            />
+        {/* Header with close button */}
+        <div className="flex items-center justify-between p-3 border-b border-sidebar-border">
+          <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+            <div className="flex items-center gap-2">
+              <img
+                src={paletteLogo}
+                alt="Palette"
+                className="w-8 h-8 rounded-lg object-cover"
+              />
+              <span className="font-semibold text-lg">Palette</span>
+            </div>
           </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+            className="h-8 w-8"
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
 
         <ScrollArea className="flex-1">
           {/* Main Nav */}
-          <nav className="flex flex-col gap-1 px-1.5 py-1">
-            {mainNavItems.map((item) => {
-              const link = (
-                <NavLink
-                  key={item.title}
-                  to={item.url}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-lg transition-colors touch-manipulation active:scale-95",
-                    expanded ? "px-2.5 py-2" : "justify-center p-2"
-                  )}
-                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  {expanded && <span className="text-sm truncate">{item.title}</span>}
-                </NavLink>
-              );
-
-              if (!expanded) {
-                return (
-                  <Tooltip key={item.title}>
-                    <TooltipTrigger asChild>{link}</TooltipTrigger>
-                    <TooltipContent side="right" sideOffset={8}>{item.title}</TooltipContent>
-                  </Tooltip>
-                );
-              }
-              return <React.Fragment key={item.title}>{link}</React.Fragment>;
-            })}
+          <nav className="flex flex-col gap-1 px-3 py-2">
+            {mainNavItems.map((item) => (
+              <NavLink
+                key={item.title}
+                to={item.url}
+                onClick={() => setIsOpen(false)} // Close on navigate
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
+                activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className="text-sm">{item.title}</span>
+              </NavLink>
+            ))}
           </nav>
 
           {/* Create Action */}
-          <div className="px-1.5 py-1">
-            {!expanded ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NavLink
-                    to={createAction.url}
-                    className="flex items-center justify-center p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary active:scale-95 touch-manipulation"
-                  >
-                    <createAction.icon className="h-5 w-5" />
-                  </NavLink>
-                </TooltipTrigger>
-                <TooltipContent side="right" sideOffset={8}>{createAction.label}</TooltipContent>
-              </Tooltip>
-            ) : (
-              <NavLink
-                to={createAction.url}
-                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium active:scale-95 touch-manipulation"
-              >
-                <createAction.icon className="h-5 w-5" />
-                <span className="text-sm">{createAction.label}</span>
-              </NavLink>
-            )}
+          <div className="px-3 py-2">
+            <NavLink
+              to={createAction.url}
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium active:scale-95 transition-colors"
+            >
+              <createAction.icon className="h-5 w-5" />
+              <span className="text-sm">{createAction.label}</span>
+            </NavLink>
           </div>
 
           {/* Favorites */}
-          {expanded && favoriteBoards.length > 0 && (
-            <div className="px-1.5 py-1">
-              <p className="px-2.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Favorites</p>
+          {favoriteBoards.length > 0 && (
+            <div className="px-3 py-2">
+              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                Favorites
+              </p>
               {favoriteBoards.map((board) => (
                 <NavLink
                   key={board.id}
                   to={`/boards/${board.id}`}
-                  className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-sidebar-accent"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
                   activeClassName="bg-sidebar-accent"
                 >
-                  <div className={cn("w-2.5 h-2.5 rounded-sm shrink-0", getBoardColorClass(board.color))} />
-                  <span className="truncate text-xs">{board.name}</span>
+                  <div className={cn("w-3 h-3 rounded-sm shrink-0", getBoardColorClass(board.color))} />
+                  <span className="text-sm truncate">{board.name}</span>
                 </NavLink>
               ))}
             </div>
@@ -170,70 +174,40 @@ export function MobileSidebar() {
         </ScrollArea>
 
         {/* Shoseki */}
-        <div className={cn("px-1.5 pb-1", !expanded && "flex justify-center")}>
-          {!expanded ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href="https://shoseki.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 touch-manipulation"
-                >
-                  <img src={shosekiLogo} alt="Shoseki" className="w-5 h-5 object-contain" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={8}>Shoseki AI Directory</TooltipContent>
-            </Tooltip>
-          ) : (
-            <a
-              href="https://shoseki.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 touch-manipulation"
-            >
-              <img src={shosekiLogo} alt="Shoseki" className="w-5 h-5 object-contain" />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium">Shoseki</span>
-                <span className="text-[10px] text-muted-foreground">AI Directory</span>
-              </div>
-            </a>
-          )}
+        <div className="px-3 py-2 border-t border-sidebar-border">
+          <a
+            href="https://shoseki.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-colors"
+          >
+            <img src={shosekiLogo} alt="Shoseki" className="w-6 h-6 object-contain" />
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">Shoseki</span>
+              <span className="text-xs text-muted-foreground">AI Directory</span>
+            </div>
+          </a>
         </div>
 
         {/* Footer nav */}
-        <div className="border-t border-sidebar-border px-1.5 py-1.5 flex flex-col gap-1">
+        <div className="border-t border-sidebar-border px-3 py-2 flex flex-col gap-1">
           {[
             { icon: User, title: 'Profile', url: '/profile' },
             { icon: Settings, title: 'Settings', url: '/settings' },
-          ].map((item) => {
-            const link = (
-              <NavLink
-                key={item.title}
-                to={item.url}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg hover:bg-sidebar-accent touch-manipulation active:scale-95",
-                  expanded ? "px-2.5 py-2" : "justify-center p-2"
-                )}
-                activeClassName="bg-sidebar-accent"
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                {expanded && <span className="text-sm">{item.title}</span>}
-              </NavLink>
-            );
-
-            if (!expanded) {
-              return (
-                <Tooltip key={item.title}>
-                  <TooltipTrigger asChild>{link}</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={8}>{item.title}</TooltipContent>
-                </Tooltip>
-              );
-            }
-            return <React.Fragment key={item.title}>{link}</React.Fragment>;
-          })}
+          ].map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.url}
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-accent active:scale-95 transition-colors"
+              activeClassName="bg-sidebar-accent"
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span className="text-sm">{item.title}</span>
+            </NavLink>
+          ))}
         </div>
       </aside>
-    </TooltipProvider>
+    </>
   );
 }
