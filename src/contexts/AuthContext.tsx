@@ -61,59 +61,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
 
-    // Set up auth state listener FIRST
+    // Listener for ONGOING auth changes (does NOT control isLoading)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
+      (event, session) => {
+        if (!isMounted) return;
         
-        try {
-          if (session?.user) {
-            const transformedUser = transformUser(session.user);
-            
-            // Try to get profile with avatar (don't block on this)
-            try {
-              const profile = await fetchProfile(session.user.id);
-              if (profile?.avatar_url) {
-                transformedUser.avatar = profile.avatar_url;
-              }
-            } catch (e) {
-              console.error('Error fetching profile:', e);
+        if (session?.user) {
+          const transformedUser = transformUser(session.user);
+          setUser(transformedUser);
+          
+          // Fire and forget - don't await, don't set loading
+          fetchProfile(session.user.id).then(profile => {
+            if (isMounted && profile?.avatar_url) {
+              setUser(prev => prev ? { ...prev, avatar: profile.avatar_url } : null);
             }
-            
-            if (mounted) setUser(transformedUser);
-            
-            // Create profile if signing in for first time (don't await)
-            if (event === 'SIGNED_IN') {
-              createProfile(session.user).catch(console.error);
-            }
-          } else {
-            if (mounted) setUser(null);
+          }).catch(console.error);
+          
+          // Create profile if signing in for first time (don't await)
+          if (event === 'SIGNED_IN') {
+            createProfile(session.user).catch(console.error);
           }
-        } catch (error) {
-          console.error('Auth state change error:', error);
-        } finally {
-          if (mounted) setIsLoading(false);
+        } else {
+          setUser(null);
         }
       }
     );
 
-    // THEN check for existing session
-    const initSession = async () => {
+    // INITIAL load (controls isLoading)
+    const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Get session error:', error);
-          if (mounted) setIsLoading(false);
-          return;
-        }
-        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
         if (session?.user) {
           const transformedUser = transformUser(session.user);
           
-          // Try to get profile with avatar
+          // Fetch profile BEFORE setting loading false
           try {
             const profile = await fetchProfile(session.user.id);
             if (profile?.avatar_url) {
@@ -123,19 +108,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Error fetching profile:', e);
           }
           
-          if (mounted) setUser(transformedUser);
+          if (isMounted) setUser(transformedUser);
         }
       } catch (error) {
         console.error('Session initialization error:', error);
       } finally {
-        if (mounted) setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
-    initSession();
+    initializeAuth();
 
     return () => {
-      mounted = false;
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
