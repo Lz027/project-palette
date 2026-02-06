@@ -36,7 +36,7 @@ interface CodeSnippetsProps {
 
 export function CodeSnippets({ className }: CodeSnippetsProps) {
   const [snippets, setSnippets] = useState<Snippet[]>(() => {
-    return safeParseLocalStorage(STORAGE_KEY, snippetArraySchema, []);
+    return safeParseLocalStorage(STORAGE_KEY, snippetArraySchema, [] as Snippet[]) as Snippet[];
   });
   const [isAdding, setIsAdding] = useState(false);
   const [newSnippet, setNewSnippet] = useState({ title: '', code: '', language: 'javascript' });

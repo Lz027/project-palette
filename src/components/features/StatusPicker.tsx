@@ -39,7 +39,7 @@ interface StatusPickerProps {
 
 export function StatusPicker({ className }: StatusPickerProps) {
   const [statuses, setStatuses] = useState<Status[]>(() => {
-    return safeParseLocalStorage(STORAGE_KEY_STATUSES, statusArraySchema, defaultStatuses);
+    return safeParseLocalStorage(STORAGE_KEY_STATUSES, statusArraySchema, defaultStatuses) as Status[];
   });
   const [currentStatus, setCurrentStatus] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY_CURRENT) || 'available';
