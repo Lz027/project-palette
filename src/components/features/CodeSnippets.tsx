@@ -7,7 +7,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Code, Plus, Copy, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { snippetTitleSchema, snippetCodeSchema, validateInput, INPUT_LIMITS } from '@/lib/validation';
+import { safeParseLocalStorage, safeSetLocalStorage } from '@/lib/safe-storage';
+
+// Schema for validating snippet data from localStorage
+const snippetSchema = z.object({
+  id: z.string(),
+  title: z.string().max(INPUT_LIMITS.SNIPPET_TITLE),
+  code: z.string().max(INPUT_LIMITS.SNIPPET_CODE),
+  language: z.string(),
+});
+
+const snippetArraySchema = z.array(snippetSchema);
 
 interface Snippet {
   id: string;
@@ -16,14 +28,15 @@ interface Snippet {
   language: string;
 }
 
+const STORAGE_KEY = 'palette-code-snippets';
+
 interface CodeSnippetsProps {
   className?: string;
 }
 
 export function CodeSnippets({ className }: CodeSnippetsProps) {
   const [snippets, setSnippets] = useState<Snippet[]>(() => {
-    const saved = localStorage.getItem('palette-code-snippets');
-    return saved ? JSON.parse(saved) : [];
+    return safeParseLocalStorage(STORAGE_KEY, snippetArraySchema, []);
   });
   const [isAdding, setIsAdding] = useState(false);
   const [newSnippet, setNewSnippet] = useState({ title: '', code: '', language: 'javascript' });
@@ -31,7 +44,7 @@ export function CodeSnippets({ className }: CodeSnippetsProps) {
 
   const saveSnippets = (newSnippets: Snippet[]) => {
     setSnippets(newSnippets);
-    localStorage.setItem('palette-code-snippets', JSON.stringify(newSnippets));
+    safeSetLocalStorage(STORAGE_KEY, newSnippets);
   };
 
   const addSnippet = () => {
