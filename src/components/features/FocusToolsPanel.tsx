@@ -17,18 +17,21 @@ const techTools = [
   { id: 'vercel', name: 'Vercel', logo: 'https://vercel.com/favicon.ico', url: 'https://vercel.com', category: 'Deploy' },
   { id: 'bolt', name: 'Bolt.new', logo: 'https://bolt.new/favicon.ico', url: 'https://bolt.new', category: 'AI Builder' },
   { id: 'v0', name: 'v0.dev', logo: 'https://v0.dev/favicon.ico', url: 'https://v0.dev', category: 'AI Builder' },
+  { id: 'genspark', name: 'Genspark', logo: 'https://www.genspark.ai/favicon.ico', url: 'https://genspark.ai', category: 'AI Search' },
 ];
 
 // Design tools with logos and URLs
 const designTools = [
-  { id: 'canva', name: 'Canva', logo: 'https://static.canva.com/static/images/favicon-1.ico', url: 'https://canva.com', category: 'Design' },
   { id: 'figma', name: 'Figma', logo: 'https://static.figma.com/app/icon/1/favicon.png', url: 'https://figma.com', category: 'Design' },
+  { id: 'canva', name: 'Canva', logo: 'https://static.canva.com/static/images/favicon-1.ico', url: 'https://canva.com', category: 'Design' },
   { id: 'leonardo', name: 'Leonardo AI', logo: 'https://leonardo.ai/favicon.ico', url: 'https://leonardo.ai', category: 'AI Image' },
   { id: 'midjourney', name: 'Midjourney', logo: 'https://www.midjourney.com/favicon.ico', url: 'https://midjourney.com', category: 'AI Image' },
   { id: 'ideogram', name: 'Ideogram', logo: 'https://ideogram.ai/favicon.ico', url: 'https://ideogram.ai', category: 'AI Image' },
   { id: 'photopea', name: 'Photopea', logo: 'https://www.photopea.com/promo/icon512.png', url: 'https://photopea.com', category: 'Editor' },
   { id: 'remove-bg', name: 'Remove.bg', logo: 'https://www.remove.bg/favicon.ico', url: 'https://remove.bg', category: 'Editor' },
   { id: 'coolors', name: 'Coolors', logo: 'https://coolors.co/assets/img/favicon.png', url: 'https://coolors.co', category: 'Colors' },
+  { id: 'blender', name: 'Blender', logo: 'https://www.blender.org/favicon.ico', url: 'https://blender.org', category: '3D' },
+  { id: 'procreate', name: 'Procreate', logo: 'https://procreate.com/favicon.ico', url: 'https://procreate.com', category: 'Drawing' },
 ];
 
 // Productivity tools (all tools catalog)
@@ -41,8 +44,11 @@ const productivityTools = [
   { id: 'loom', name: 'Loom', logo: 'https://cdn.loom.com/assets/favicons-loom/favicon.ico', url: 'https://loom.com', category: 'Video' },
   { id: 'excalidraw', name: 'Excalidraw', logo: 'https://excalidraw.com/favicon.ico', url: 'https://excalidraw.com', category: 'Whiteboard' },
   { id: 'perplexity', name: 'Perplexity', logo: 'https://www.perplexity.ai/favicon.ico', url: 'https://perplexity.ai', category: 'AI Search' },
+  { id: 'genspark', name: 'Genspark', logo: 'https://www.genspark.ai/favicon.ico', url: 'https://genspark.ai', category: 'AI Search' },
   { id: 'chatgpt', name: 'ChatGPT', logo: 'https://chat.openai.com/favicon.ico', url: 'https://chat.openai.com', category: 'AI Chat' },
   { id: 'claude', name: 'Claude', logo: 'https://claude.ai/favicon.ico', url: 'https://claude.ai', category: 'AI Chat' },
+  { id: 'manus', name: 'Manus', logo: 'https://manus.im/favicon.ico', url: 'https://manus.im', category: 'AI Agent' },
+  { id: 'kimi', name: 'Kimi', logo: 'https://kimi.ai/favicon.ico', url: 'https://kimi.ai', category: 'AI Agent' },
   { id: 'todoist', name: 'Todoist', logo: 'https://todoist.com/favicon.ico', url: 'https://todoist.com', category: 'Tasks' },
   { id: 'airtable', name: 'Airtable', logo: 'https://airtable.com/favicon.ico', url: 'https://airtable.com', category: 'Database' },
 ];
