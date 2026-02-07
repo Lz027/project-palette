@@ -21,12 +21,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Detect if running in Capacitor native app
-const isNative = () => {
-  return typeof (window as any).Capacitor !== 'undefined' && 
-         (window as any).Capacitor.isNativePlatform();
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,46 +34,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     avatar: supabaseUser.user_metadata?.avatar_url,
     createdAt: new Date(supabaseUser.created_at),
   });
-
-  // Handle deep links for native auth
-  useEffect(() => {
-    if (!isNative()) return;
-
-    let appListener: any = null;
-
-    const setupDeepLink = async () => {
-      try {
-        // Dynamic import only for native
-        const { App } = await import('@capacitor/app');
-        
-        appListener = await App.addListener('appUrlOpen', (event: any) => {
-          const url = event.url;
-          if (url && url.includes('auth/callback')) {
-            const params = new URLSearchParams(url.split('?')[1]);
-            const access_token = params.get('access_token');
-            const refresh_token = params.get('refresh_token');
-            
-            if (access_token && refresh_token) {
-              supabase.auth.setSession({
-                access_token,
-                refresh_token
-              });
-            }
-          }
-        });
-      } catch (e) {
-        console.error('Deep link setup failed:', e);
-      }
-    };
-
-    setupDeepLink();
-
-    return () => {
-      if (appListener) {
-        appListener.remove();
-      }
-    };
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -115,16 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     
     try {
-      const native = isNative();
-      console.log('Login mode:', native ? 'native' : 'web');
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: native 
-            ? 'io.palette.app://auth/callback'
-            : `${window.location.origin}/auth/callback`,
-          skipBrowserRedirect: native,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       
