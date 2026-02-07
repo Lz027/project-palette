@@ -4,13 +4,20 @@ const config: CapacitorConfig = {
   appId: 'io.palette.app',
   appName: 'PALETTE',
   webDir: 'dist',
+  bundledWebRuntime: false,
   server: {
-    androidScheme: 'https'
+    // No URL - use local files
+    cleartext: true
   },
   android: {
-    buildOptions: {
-      keystorePath: undefined,
-      keystoreAlias: undefined,
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#ffffff"
     }
   }
 };
