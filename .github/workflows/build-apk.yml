@@ -23,9 +23,23 @@ jobs:
     - name: Build web app
       run: npm run build
       
-    - name: Install Capacitor & App plugin
+    - name: Install Capacitor
       run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/app @capacitor/splash-screen
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        
+    - name: Create capacitor config
+      run: |
+        cat > capacitor.config.ts << 'EOF'
+        import { CapacitorConfig } from '@capacitor/cli';
+        const config: CapacitorConfig = {
+          appId: 'io.palette.app',
+          appName: 'PALETTE',
+          webDir: 'dist',
+          server: { androidScheme: 'https' },
+          android: { allowMixedContent: true }
+        };
+        export default config;
+        EOF
         
     - name: Init Capacitor
       run: npx cap init Palette io.palette.app --web-dir dist
@@ -33,35 +47,39 @@ jobs:
     - name: Add Android
       run: npx cap add android
       
-    - name: Sync Capacitor
-      run: npx cap sync android
-      
-    - name: Generate icons (if exists)
+    - name: Create network security config
       run: |
-        if [ -f "public/icon.png" ]; then
-          npm install -g @capacitor/assets
-          npx capacitor-assets generate --android
-        else
-          echo "No icon.png found, using defaults"
-        fi
-      continue-on-error: true
-      
-    - name: Add deep linking to AndroidManifest
+        mkdir -p android/app/src/main/res/xml
+        cat > android/app/src/main/res/xml/network_security_config.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <network-security-config>
+            <base-config cleartextTrafficPermitted="true">
+                <trust-anchors>
+                    <certificates src="system" />
+                </trust-anchors>
+            </base-config>
+        </network-security-config>
+        EOF
+        
+    - name: Update AndroidManifest.xml
       run: |
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         
-        # Check if intent-filter already exists
-        if ! grep -q "io.palette.app" "$MANIFEST"; then
-          # Add intent-filter before closing </activity> tag
-          sed -i '/<\/activity>/i \
-          <intent-filter>\
-              <action android:name="android.intent.action.VIEW" />\
-              <category android:name="android.intent.category.DEFAULT" />\
-              <category android:name="android.intent.category.BROWSABLE" />\
-              <data android:scheme="io.palette.app" android:host="auth" android:pathPrefix="/callback" />\
-          </intent-filter>' "$MANIFEST"
-        fi
+        # Add network security config to application tag
+        sed -i 's/<application/<application android:networkSecurityConfig="@xml\/network_security_config"/' "$MANIFEST"
         
+        # Add intent-filter for auth callback
+        sed -i '/<\/activity>/i \
+        <intent-filter>\
+            <action android:name="android.intent.action.VIEW" />\
+            <category android:name="android.intent.category.DEFAULT" />\
+            <category android:name="android.intent.category.BROWSABLE" />\
+            <data android:scheme="io.palette.app" android:host="auth" android:pathPrefix="/callback" />\
+        </intent-filter>' "$MANIFEST"
+        
+    - name: Sync Capacitor
+      run: npx cap sync android
+      
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
