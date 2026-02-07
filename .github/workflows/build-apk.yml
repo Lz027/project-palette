@@ -29,16 +29,19 @@ jobs:
         
     - name: Create capacitor config
       run: |
-        cat > capacitor.config.ts << 'EOF'
-        import { CapacitorConfig } from '@capacitor/cli';
-        const config: CapacitorConfig = {
-          appId: 'io.palette.app',
-          appName: 'PALETTE',
-          webDir: 'dist',
-          server: { androidScheme: 'https' },
-          android: { allowMixedContent: true }
-        };
-        export default config;
+        cat > capacitor.config.json << 'EOF'
+        {
+          "appId": "io.palette.app",
+          "appName": "PALETTE",
+          "webDir": "dist",
+          "server": {
+            "androidScheme": "https"
+          },
+          "android": {
+            "allowMixedContent": true,
+            "webContentsDebuggingEnabled": false
+          }
+        }
         EOF
         
     - name: Init Capacitor
