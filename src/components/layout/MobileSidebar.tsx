@@ -11,6 +11,7 @@ import {
   Briefcase,
   Plus,
   PanelLeft,
+  PanelRight,
   X,
   Lightbulb,
   Zap,
@@ -34,7 +35,6 @@ const mainNavItems = [
   { title: 'Favorites', url: '/favorites', icon: Star },
 ];
 
-// Focus-specific tips
 const focusTips = {
   productive: [
     { icon: Coffee, text: "Take breaks every 25 minutes" },
@@ -50,7 +50,6 @@ const focusTips = {
   ],
 };
 
-// Focus-specific create button
 const focusCreate = {
   productive: { icon: Briefcase, label: 'New Workspace' },
   tech: { icon: Code, label: 'New Project' },
@@ -58,13 +57,13 @@ const focusCreate = {
 };
 
 export function MobileSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { boards } = useBoards();
   const { focusMode } = useFocus();
   const location = useLocation();
 
   useEffect(() => {
-    setIsCollapsed(true);
+    setIsExpanded(false);
   }, [location.pathname]);
 
   const favoriteBoards = boards.filter(b => b.isFavorite).slice(0, 5);
@@ -84,148 +83,115 @@ export function MobileSidebar() {
     return colors[color] || 'bg-primary';
   };
 
-  // Collapsed sidebar
-  const CollapsedBar = () => (
-    <aside className="fixed left-0 top-14 bottom-0 w-14 bg-background border-r border-border flex flex-col items-center py-3 gap-1 z-30 md:hidden">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsCollapsed(false)}
-        className="h-9 w-9 rounded-lg mb-2 text-muted-foreground hover:text-foreground hover:bg-muted"
-      >
-        <PanelLeft className="h-5 w-5" />
-      </Button>
-
-      {mainNavItems.map((item) => (
-        <NavLink
-          key={item.title}
-          to={item.url}
-          className={cn(
-            "h-9 w-9 rounded-lg flex items-center justify-center transition-all",
-            "text-muted-foreground hover:text-foreground hover:bg-muted",
-            "active:scale-95"
-          )}
-          activeClassName="bg-primary/10 text-primary"
-        >
-          <item.icon className="h-[18px] w-[18px]" />
-        </NavLink>
-      ))}
-
-      <NavLink
-        to="/boards/new"
-        className="h-9 w-9 rounded-lg flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-colors mt-2"
-      >
-        <Plus className="h-[18px] w-[18px]" />
-      </NavLink>
-
-      <div className="flex-1" />
-
-      <a
-        href="https://shoseki.vercel.app"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="h-9 w-9 rounded-lg flex items-center justify-center bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-opacity mb-1"
-      >
-        <img src={shosekiLogo} alt="Shoseki" className="h-5 w-5 object-contain rounded" />
-      </a>
-
-      <NavLink
-        to="/profile"
-        className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-        activeClassName="bg-primary/10 text-primary"
-      >
-        <User className="h-[18px] w-[18px]" />
-      </NavLink>
-
-      <NavLink
-        to="/settings"
-        className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-        activeClassName="bg-primary/10 text-primary"
-      >
-        <Settings className="h-[18px] w-[18px]" />
-      </NavLink>
-    </aside>
-  );
-
-  // Expanded sidebar
-  const ExpandedSidebar = () => (
+  return (
     <>
-      <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
-        onClick={() => setIsCollapsed(true)}
-      />
-      <aside className="fixed left-0 top-0 h-full w-64 bg-background border-r border-border flex flex-col z-50 md:hidden shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <img src={paletteLogo} alt="PALETTE" className="w-9 h-9 rounded-xl object-cover" />
-            <div>
-              <span className="font-bold text-lg tracking-tight">PALETTE</span>
-            </div>
-          </Link>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setIsCollapsed(true)}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+      {/* Animated Sidebar Container */}
+      <aside 
+        className={cn(
+          "fixed left-0 top-14 bottom-0 bg-background border-r border-border flex flex-col z-30 md:hidden transition-all duration-300 ease-in-out",
+          isExpanded ? "w-64" : "w-14"
+        )}
+      >
+        {/* Toggle Button at Top */}
+        <div className="flex items-center justify-center p-2 border-b border-border">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
-            <X className="h-5 w-5" />
+            {isExpanded ? <PanelLeft className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 px-3 py-2">
-          {/* Dynamic Create Button */}
+        {/* Logo (expanded only) */}
+        <div className={cn(
+          "overflow-hidden transition-all duration-300",
+          isExpanded ? "h-16 opacity-100" : "h-0 opacity-0"
+        )}>
+          <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3">
+            <img src={paletteLogo} alt="PALETTE" className="w-8 h-8 rounded-lg object-cover" />
+            <span className="font-bold text-lg tracking-tight">PALETTE</span>
+          </Link>
+        </div>
+
+        {/* Main Nav Icons */}
+        <div className="flex-1 py-2 space-y-1 px-2">
+          {mainNavItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.url}
+              className={cn(
+                "flex items-center gap-3 rounded-lg transition-all duration-200 active:scale-95",
+                isExpanded ? "px-3 py-2" : "justify-center py-2",
+                "text-muted-foreground hover:text-foreground hover:bg-muted",
+                "active:scale-95"
+              )}
+              activeClassName="bg-primary/10 text-primary"
+            >
+              <item.icon className={cn("shrink-0", isExpanded ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+              <span className={cn(
+                "text-sm whitespace-nowrap transition-all duration-300",
+                isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+              )}>
+                {item.title}
+              </span>
+            </NavLink>
+          ))}
+
+          {/* Create Button */}
           <NavLink
             to="/boards/new"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium mb-4 active:scale-95 transition-all shadow-sm"
+            className={cn(
+              "flex items-center gap-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 active:scale-95 transition-all mt-2",
+              isExpanded ? "px-3 py-2" : "justify-center py-2"
+            )}
           >
-            <CreateIcon className="h-5 w-5" />
-            <span>{createConfig.label}</span>
+            <Plus className={cn("shrink-0", isExpanded ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+            <span className={cn(
+              "text-sm font-medium whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+            )}>
+              {createConfig.label}
+            </span>
           </NavLink>
 
-          {/* Main Nav */}
-          <nav className="space-y-0.5">
-            {mainNavItems.map((item) => (
-              <NavLink
-                key={item.title}
-                to={item.url}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-                activeClassName="bg-muted text-foreground font-medium"
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span className="text-sm">{item.title}</span>
-              </NavLink>
-            ))}
-          </nav>
+          {/* Favorites (expanded only) */}
+          <div className={cn(
+            "overflow-hidden transition-all duration-300",
+            isExpanded ? "mt-4 opacity-100" : "h-0 opacity-0"
+          )}>
+            {favoriteBoards.length > 0 && (
+              <>
+                <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  Favorites
+                </p>
+                <div className="space-y-0.5 px-1">
+                  {favoriteBoards.map((board) => (
+                    <NavLink
+                      key={board.id}
+                      to={`/boards/${board.id}`}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
+                      activeClassName="bg-muted text-foreground"
+                    >
+                      <div className={cn("w-2 h-2 rounded-full shrink-0", getBoardColorClass(board.color))} />
+                      <span className="text-sm truncate">{board.name}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
-          {/* Favorites */}
-          {favoriteBoards.length > 0 && (
-            <div className="mt-6">
-              <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                Favorites
-              </p>
-              <div className="space-y-0.5">
-                {favoriteBoards.map((board) => (
-                  <NavLink
-                    key={board.id}
-                    to={`/boards/${board.id}`}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-                    activeClassName="bg-muted text-foreground"
-                  >
-                    <div className={cn("w-2 h-2 rounded-full shrink-0", getBoardColorClass(board.color))} />
-                    <span className="text-sm truncate">{board.name}</span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Focus Tips - 2 tips only */}
-          <div className="mt-6">
+          {/* Tips (expanded only) */}
+          <div className={cn(
+            "overflow-hidden transition-all duration-300",
+            isExpanded ? "mt-4 opacity-100" : "h-0 opacity-0"
+          )}>
             <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
               {focusMode.charAt(0).toUpperCase() + focusMode.slice(1)} Tips
             </p>
-            <div className="space-y-2">
+            <div className="space-y-2 px-1">
               {currentTips.map((tip, index) => (
                 <div key={index} className="flex items-start gap-2 p-2 rounded-lg bg-muted/50">
                   <tip.icon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -235,52 +201,81 @@ export function MobileSidebar() {
             </div>
           </div>
 
-          {/* Space reserved for Ko-fi (future) */}
-          <div className="mt-4 h-16 rounded-lg border-2 border-dashed border-muted flex items-center justify-center">
-            <span className="text-xs text-muted-foreground"></span>
+          {/* Ko-fi space (expanded only) */}
+          <div className={cn(
+            "overflow-hidden transition-all duration-300 mt-4",
+            isExpanded ? "h-16 opacity-100" : "h-0 opacity-0"
+          )}>
+            <div className="h-12 mx-2 rounded-lg border-2 border-dashed border-muted" />
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-border space-y-0.5">
+        {/* Bottom Section */}
+        <div className="border-t border-border py-2 px-2 space-y-1">
+          {/* Shoseki */}
           <a
             href="https://shoseki.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-black dark:bg-white text-white dark:text-black transition-colors mb-2"
+            className={cn(
+              "flex items-center gap-3 rounded-lg bg-black dark:bg-white text-white dark:text-black hover:opacity-80 transition-all",
+              isExpanded ? "px-3 py-2" : "justify-center py-2"
+            )}
           >
-            <img src={shosekiLogo} alt="Shoseki" className="w-6 h-6 object-contain rounded" />
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold">Shoseki</span>
-              <span className="text-[10px] opacity-80">AI Directory</span>
-            </div>
+            <img src={shosekiLogo} alt="Shoseki" className={cn("object-contain rounded", isExpanded ? "w-6 h-6" : "w-5 h-5")} />
+            <span className={cn(
+              "text-sm font-semibold whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+            )}>
+              Shoseki
+            </span>
           </a>
-          
+
+          {/* Profile */}
           <NavLink
             to="/profile"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-            activeClassName="bg-muted text-foreground"
+            className={cn(
+              "flex items-center gap-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors",
+              isExpanded ? "px-3 py-2" : "justify-center py-2"
+            )}
+            activeClassName="bg-primary/10 text-primary"
           >
-            <User className="h-5 w-5 shrink-0" />
-            <span className="text-sm">Profile</span>
+            <User className={cn("shrink-0", isExpanded ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+            <span className={cn(
+              "text-sm whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+            )}>
+              Profile
+            </span>
           </NavLink>
-          
+
+          {/* Settings */}
           <NavLink
             to="/settings"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors"
-            activeClassName="bg-muted text-foreground"
+            className={cn(
+              "flex items-center gap-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-colors",
+              isExpanded ? "px-3 py-2" : "justify-center py-2"
+            )}
+            activeClassName="bg-primary/10 text-primary"
           >
-            <Settings className="h-5 w-5 shrink-0" />
-            <span className="text-sm">Settings</span>
+            <Settings className={cn("shrink-0", isExpanded ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+            <span className={cn(
+              "text-sm whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+            )}>
+              Settings
+            </span>
           </NavLink>
         </div>
       </aside>
-    </>
-  );
 
-  return (
-    <>
-      {isCollapsed ? <CollapsedBar /> : <ExpandedSidebar />}
+      {/* Overlay when expanded */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 md:hidden"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
     </>
   );
 }
