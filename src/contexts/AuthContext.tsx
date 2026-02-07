@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
-        
         if (session?.user) {
           setUser(transformUser(session.user));
         } else {
@@ -49,10 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted && session?.user) {
-        setUser(transformUser(session.user));
+      if (isMounted) {
+        if (session?.user) {
+          setUser(transformUser(session.user));
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => {
