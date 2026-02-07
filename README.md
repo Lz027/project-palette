@@ -496,5 +496,3 @@ VITE_GITHUB_CLIENT_ID="YOUR_GITHUB_CLIENT_ID"
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-
-**Manus AI**
