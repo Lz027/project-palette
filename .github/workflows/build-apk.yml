@@ -33,17 +33,14 @@ jobs:
         
     - name: Add icon and config
       run: |
-        # Create directories
         mkdir -p cordova-app/res/icon/android
         
-        # Copy icon if exists
         if [ -f "public/icon.png" ]; then
           cp public/icon.png cordova-app/res/icon/android/icon.png
         elif [ -f "src/assets/palette-logo.jpeg" ]; then
           cp src/assets/palette-logo.jpeg cordova-app/res/icon/android/icon.png
         fi
         
-        # Create config.xml with icon
         cat > cordova-app/config.xml << 'EOF'
         <?xml version='1.0' encoding='utf-8'?>
         <widget id="io.palette.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
@@ -54,6 +51,7 @@ jobs:
             <access origin="*" />
             <allow-intent href="http://*/*" />
             <allow-intent href="https://*/*" />
+            <preference name="AndroidInsecureFileModeEnabled" value="true" />
             <icon src="res/icon/android/icon.png" />
             <platform name="android">
                 <icon src="res/icon/android/icon.png" density="ldpi" />
@@ -66,10 +64,12 @@ jobs:
         </widget>
         EOF
         
-    - name: Add Android platform
+    - name: Add plugins
       run: |
         cd cordova-app
         cordova platform add android
+        cordova plugin add cordova-plugin-inappbrowser
+        cordova plugin add cordova-plugin-customurlscheme --variable URL_SCHEME=io.palette.app
         
     - name: Setup Java 17
       uses: actions/setup-java@v4
