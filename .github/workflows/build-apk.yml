@@ -29,7 +29,7 @@ jobs:
         
     - name: Init Capacitor
       run: |
-        npx cap init Palette io.palette.app --web-dir dist --skip-npm-install
+        npx cap init Palette io.palette.app --web-dir dist
         
     - name: Add Android
       run: npx cap add android
