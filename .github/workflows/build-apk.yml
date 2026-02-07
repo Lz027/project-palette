@@ -31,7 +31,7 @@ jobs:
         cordova create cordova-app io.palette.app PALETTE
         cp -r dist/* cordova-app/www/
         
-    - name: Add icon and config
+    - name: Add icon
       run: |
         mkdir -p cordova-app/res/icon/android
         
@@ -46,30 +46,17 @@ jobs:
         <widget id="io.palette.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
             <name>PALETTE</name>
             <description>Creative productivity workspace</description>
-            <author email="dev@palette.app" href="https://palette.app">Palette Team</author>
             <content src="index.html" />
             <access origin="*" />
-            <allow-intent href="http://*/*" />
-            <allow-intent href="https://*/*" />
-            <preference name="AndroidInsecureFileModeEnabled" value="true" />
+            <allow-navigation href="*" />
             <icon src="res/icon/android/icon.png" />
-            <platform name="android">
-                <icon src="res/icon/android/icon.png" density="ldpi" />
-                <icon src="res/icon/android/icon.png" density="mdpi" />
-                <icon src="res/icon/android/icon.png" density="hdpi" />
-                <icon src="res/icon/android/icon.png" density="xhdpi" />
-                <icon src="res/icon/android/icon.png" density="xxhdpi" />
-                <icon src="res/icon/android/icon.png" density="xxxhdpi" />
-            </platform>
         </widget>
         EOF
         
-    - name: Add plugins
+    - name: Add Android
       run: |
         cd cordova-app
         cordova platform add android
-        cordova plugin add cordova-plugin-inappbrowser
-        cordova plugin add cordova-plugin-customurlscheme --variable URL_SCHEME=io.palette.app
         
     - name: Setup Java 17
       uses: actions/setup-java@v4
