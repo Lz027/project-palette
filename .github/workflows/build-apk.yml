@@ -43,6 +43,19 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
         
+    - name: Fix Kotlin conflict
+      run: |
+        cd android
+        echo "
+        configurations.all {
+            resolutionStrategy {
+                force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+            }
+        }
+        " >> app/build.gradle
+        
     - name: Build APK
       run: |
         cd android
