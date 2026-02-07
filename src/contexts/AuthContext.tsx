@@ -45,34 +45,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isNative()) return;
 
-    // Listen for app url open (deep link)
-    const handleDeepLink = (event: any) => {
-      const url = event.detail?.url || event.url;
-      if (url && url.includes('auth/callback')) {
-        // Extract tokens from URL and set session
-        const params = new URLSearchParams(url.split('?')[1]);
-        const access_token = params.get('access_token');
-        const refresh_token = params.get('refresh_token');
-        
-        if (access_token && refresh_token) {
-          supabase.auth.setSession({
-            access_token,
-            refresh_token
-          });
-        }
-      }
-    };
+    let appListener: any = null;
 
-    // Capacitor App plugin listener
     const setupDeepLink = async () => {
-      const { App } = await import('@capacitor/app');
-      App.addListener('appUrlOpen', handleDeepLink);
+      try {
+        // Dynamic import only for native
+        const { App } = await import('@capacitor/app');
+        
+        appListener = await App.addListener('appUrlOpen', (event: any) => {
+          const url = event.url;
+          if (url && url.includes('auth/callback')) {
+            const params = new URLSearchParams(url.split('?')[1]);
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+            
+            if (access_token && refresh_token) {
+              supabase.auth.setSession({
+                access_token,
+                refresh_token
+              });
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Deep link setup failed:', e);
+      }
     };
 
     setupDeepLink();
 
     return () => {
-      // Cleanup
+      if (appListener) {
+        appListener.remove();
+      }
     };
   }, []);
 
