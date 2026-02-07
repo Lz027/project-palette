@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Native APK
 
 on:
   push:
@@ -23,13 +23,12 @@ jobs:
     - name: Build web app
       run: npm run build
       
-    - name: Install Capacitor
+    - name: Install Capacitor & App plugin
       run: |
-        npm install @capacitor/core @capacitor/cli @capacitor/android
+        npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/app @capacitor/splash-screen
         
     - name: Init Capacitor
-      run: |
-        npx cap init Palette io.palette.app --web-dir dist
+      run: npx cap init Palette io.palette.app --web-dir dist
         
     - name: Add Android
       run: npx cap add android
@@ -37,6 +36,32 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
       
+    - name: Generate icons (if exists)
+      run: |
+        if [ -f "public/icon.png" ]; then
+          npm install -g @capacitor/assets
+          npx capacitor-assets generate --android
+        else
+          echo "No icon.png found, using defaults"
+        fi
+      continue-on-error: true
+      
+    - name: Add deep linking to AndroidManifest
+      run: |
+        MANIFEST="android/app/src/main/AndroidManifest.xml"
+        
+        # Check if intent-filter already exists
+        if ! grep -q "io.palette.app" "$MANIFEST"; then
+          # Add intent-filter before closing </activity> tag
+          sed -i '/<\/activity>/i \
+          <intent-filter>\
+              <action android:name="android.intent.action.VIEW" />\
+              <category android:name="android.intent.category.DEFAULT" />\
+              <category android:name="android.intent.category.BROWSABLE" />\
+              <data android:scheme="io.palette.app" android:host="auth" android:pathPrefix="/callback" />\
+          </intent-filter>' "$MANIFEST"
+        fi
+        
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
@@ -65,5 +90,5 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: palette-apk
+        name: palette-native-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
